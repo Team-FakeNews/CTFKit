@@ -4,7 +4,7 @@
 import argparse
 import validators
 
-from ctfkit import *
+from ctfkit.init_ctf_repo import *
 
 
 def check_challenge_name(name):
@@ -16,7 +16,7 @@ def check_challenge_name(name):
     :rtype: bool
     """
     if not validators.slug(name):
-        print("You must supply a valid name for a new challenge (must be a slug format)")
+        print(f"{name} is not a valid name. You must supply a valid name for a new challenge (must be a slug format)")
         return False
     else:
         return True
@@ -31,28 +31,10 @@ def check_challenge_url(url):
     :rtype: bool
     """
     if not validators.url(url):
-        print("You must supply a valid URL for a challenge import (http:// or https://)")
+        print(f"{url} is not a valid URL. You must supply a valid URL for a challenge import (http:// or https://)")
         return False
     else:
         return True
-
-
-def new_challenge(name):
-    """Create a new challenge sub-module for CTF Kit
-
-    :param name: The name of the challenge
-    :type name: str
-    """
-    print(f"New challenge {name}")
-
-
-def add_challenge(url):
-    """Import a challenge with its URL
-
-    :param url: The URL of the challenge (CTF Kit sub-module)
-    :type url: str
-    """
-    print(f"Import challenge at {url}")
 
 
 def main():
