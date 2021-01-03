@@ -1,1 +1,4 @@
 ctfkit/__pycache__
+.vscode
+*.egg-info
+__pycache__
