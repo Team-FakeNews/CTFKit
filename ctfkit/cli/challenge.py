@@ -1,6 +1,6 @@
 import click
 
-@click.group('challenge')
+@click.group()
 def cli():
     pass
 

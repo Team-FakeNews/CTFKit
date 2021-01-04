@@ -40,4 +40,4 @@ def enum_to_regex(enum: Enum) -> str:
     :return: A regex matching any of the enumeration's values
     :rtype: str
     """
-    return r"^" + r"|".join(list(map(lambda symbol: symbol.value, enum))) + r"$"
+    return r"^(" + r"|".join(list(map(lambda symbol: symbol.value, enum))) + r")$"

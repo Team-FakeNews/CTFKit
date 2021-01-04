@@ -1,13 +1,13 @@
-from ctfkit.cli.models.HostingProvider import HOSTING_PROVIDER
-from ctfkit.cli.models.HostingEnvironment import HOSTING_ENVIRONMENT
-from ctfkit.utility import enum_to_regex
-import enum
-from typing import Dict, Optional
 import click
 from click.core import Context, Parameter
 from click.types import Path
 import trafaret as t
 import trafaret_config
+from typing import Optional
+
+from ctfkit.cli.models.HostingProvider import HOSTING_PROVIDER
+from ctfkit.cli.models.HostingEnvironment import HOSTING_ENVIRONMENT
+from ctfkit.utility import enum_to_regex
 
 
 CONFIG_MODEL = t.Dict({
