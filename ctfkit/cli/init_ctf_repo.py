@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """The system tree for challenges:
 /path/to/ctf-project/
 	challenges/
