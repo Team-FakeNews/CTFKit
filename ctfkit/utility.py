@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """This file includes -- as the name says -- utility functions, such as conversions, path-related operations, common checks...
 """
 
