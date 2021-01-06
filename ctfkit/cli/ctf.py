@@ -10,7 +10,6 @@ def cli(config):
 def init():
     pass
 
-
 @cli.command('genconfig')
 def generate_config():
     pass

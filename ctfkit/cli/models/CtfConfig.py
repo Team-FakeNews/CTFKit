@@ -9,7 +9,6 @@ from ctfkit.cli.models.HostingProvider import HOSTING_PROVIDER
 from ctfkit.cli.models.HostingEnvironment import HOSTING_ENVIRONMENT
 from ctfkit.utility import enum_to_regex
 
-
 CONFIG_MODEL = t.Dict({
     t.Key("kind"): t.Regexp(r"^ctf$"),
     t.Key("name"): t.String(),
@@ -20,7 +19,6 @@ CONFIG_MODEL = t.Dict({
         t.Key("provider"): t.Regexp(enum_to_regex(HOSTING_PROVIDER)),
     }))
 })
-
 
 class CtfConfig(click.Path):
 
