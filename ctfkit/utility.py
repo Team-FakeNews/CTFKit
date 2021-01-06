@@ -6,6 +6,7 @@
 import os
 from enum import Enum
 
+
 def get_current_path():
     """Returns the current path in the system
 

@@ -20,6 +20,7 @@ CONFIG_MODEL = t.Dict({
     }))
 })
 
+
 class CtfConfig(click.Path):
 
     def __init__(self) -> None:
