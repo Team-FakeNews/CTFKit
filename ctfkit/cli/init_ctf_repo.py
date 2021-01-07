@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """The system tree for challenges:
 /path/to/ctf-project/
 	challenges/
@@ -18,7 +16,6 @@ def new_challenge(name):
     path = get_current_path()
     # Assuming the current directory has been checked using ctfkit.utility.check_installation()
     challenges_path = os.path.join(path, "challenges")
-    
 
 
 def add_challenge(url):

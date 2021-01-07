@@ -1,9 +1,8 @@
-# coding: utf-8
-
 """This file includes -- as the name says -- utility functions, such as conversions, path-related operations, common checks...
 """
 
 import os
+from enum import Enum
 
 
 def get_current_path():
@@ -32,3 +31,12 @@ def check_installation():
         print("Installation is complete! You can use CTF Kit correctly")
     else:
         print("CTF Kit is not installed correctly, you may have to initiate ctfkit again")
+
+
+def enum_to_regex(enum: Enum) -> str:
+    """Create a regex which match the provided enumerations
+
+    :return: A regex matching any of the enumeration's values
+    :rtype: str
+    """
+    return r"^(" + r"|".join(list(map(lambda symbol: symbol.value, enum))) + r")$"
