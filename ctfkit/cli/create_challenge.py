@@ -71,5 +71,10 @@ def add_challenge(url):
     :param url: The URL of the challenge (CTF Kit sub-module)
     :type url: str
     """
-    # TODO: Paused for the moment
-    print(f"Import challenge at {url}")
+    path = get_current_path()
+    # Challenge's path will be /current/directory/challenge_name
+    target_dir = os.path.join(path, url.split('/')[-1])
+    print(f"Challenge {url} will be imported in {target_dir}")
+    mkdir(target_dir)
+    Repo.clone_from(url, target_dir)
+    print(f"Done! You can check it at {target_dir}")
