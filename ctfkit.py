@@ -3,7 +3,7 @@
 import argparse
 import validators
 
-from ctfkit.init_ctf_repo import *
+from ctfkit.create_challenge import *
 
 
 def check_challenge_name(name):
