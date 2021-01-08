@@ -8,10 +8,12 @@ challenge_2/
 /path/to/ctf-project/
     # Actual directory of the CTF
     ctf/
-        ctf.config
-        # Will contain all the challenges decalred in the config file
+        ctf.yml # The CTF's configuration
+        # Will contain all the challenges decalred in the config file once the CTF is started
         challenges/
 """
+
+from git import Repo
 
 from ctfkit.utility import *
 
@@ -23,17 +25,15 @@ def new_challenge(name):
     :param name: The name of the challenge
     :type name: str
     """
-    # We will want to first create a git repo for the CTF using the command `ctfkit ctf init`, and then create the challenges
     path = get_current_path()
-    # Assuming the current directory has been checked using ctfkit.utility.check_installation()
-    challenges_path = os.path.join(path, "challenges")
-    # Challenge's directory will be `/path/to/challenge-name`
+    # Challenge's path will be /current/directory/challenge_name
     # TODO: But we will want to append a unique id to it
     challenge_path = os.path.join(path, name)
     print(f"Creating the repo for challenge {name}...")
     mkdir(challenge_path)
-    
-    # TODO: Init of the challenge git repo
+
+    # Init of the challenge git repo
+    repo = git.Repo.init(challenge_path)
 
     """One challenge will be like so:
 
@@ -48,13 +48,21 @@ def new_challenge(name):
     default_dirs = ["files", "src"]
     default_files = ["flag", "Dockerfile", "docker-compose.yml"]
 
-    # Create all directories
+    # Create all directories with .gitignore files to preserve them with commit
     for x in default_dirs:
-        mkdir(os.path.join(challenge_path, x))
+        d = os.path.join(challenge_path, x)
+        mkdir(d)
+        f = os.path.join(d, ".gitignore")
+        touch(f)
+        repo.index.add(f)
 
-    # Create all files
+    # Create all files and add them into the repo
     for x in default_files:
         touch(os.path.join(challenge_path, x))
+    repo.index.add(default_files)
+
+    repo.index.commit("CTF Kit challenge initial commit")
+    print(f"Done! You can check it at {challenge_path}")
 
 
 def add_challenge(url):
