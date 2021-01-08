@@ -14,6 +14,40 @@ def get_current_path():
     return os.path.abspath(".")
 
 
+def touch(file, data=None):
+    """Creates a file if it does not already exists, and write the content of `data` in it
+
+    :param file: The file to create
+    :type file: str
+    :param data: The data to write into `file`
+    :type data: str
+    """
+    if os.path.exists(file):
+        print(f"File {file} already exists")
+    else:
+        f = open(file, "w")
+        # If data has been specified
+        if data:
+            f.write(data)
+
+        f.close()
+
+
+def mkdir(dir):
+    """Creates a directory if it does not already exists
+
+    :param dir: The directory to create
+    :type dir: str
+    """
+    if os.path.exists(dir) and os.path.isdir(dir):
+        print(f"Directory {dir} already exists")
+    else:
+        try:
+            os.mkdir(dir)
+        except OSError as e:
+            print(e)
+
+
 def check_installation():
     """Checks the installation of CTF Kit on system (ie. are all files here?)
     For the moment, only the challenges/ directory is checked
