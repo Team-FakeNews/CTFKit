@@ -11,3 +11,12 @@ This branch should be using :
 
 * RST format
 * In the docs/ directory
+
+## How to use (dev)
+
+```sh
+pipenv install
+pipenv shell
+pip3 install -e .
+ctfkit
+```
