@@ -9,6 +9,7 @@ GitPython = "*"
 trafaret = "*"
 trafaret-config = "*"
 validators = "*"
+cdktf = "*"
 
 [dev-packages]
 
