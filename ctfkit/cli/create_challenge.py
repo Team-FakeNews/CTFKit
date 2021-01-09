@@ -33,7 +33,7 @@ def new_challenge(name):
     mkdir(challenge_path)
 
     # Init of the challenge git repo
-    repo = git.Repo.init(challenge_path)
+    repo = Repo.init(challenge_path)
 
     """One challenge will be like so:
 
