@@ -1,11 +1,13 @@
+from pprint import pformat, pprint
+from ctfkit.utility import ConfigLoader
 import click
-from ctfkit.cli.models import CtfConfig
+from ctfkit.models import CtfConfig
 
 
 @click.group()
-@click.option("--config", type=CtfConfig(), default="ctf.config.yaml")
+@click.option("--config", type=ConfigLoader(CtfConfig), default="ctf.config.yaml")
 def cli(config):
-    print(config)
+    pprint(config)
 
 
 @cli.command('init')
