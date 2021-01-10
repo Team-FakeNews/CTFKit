@@ -10,6 +10,10 @@ trafaret = "*"
 trafaret-config = "*"
 validators = "*"
 cdktf = "*"
+cdktf-cdktf-provider-google = "*"
+python-slugify = "*"
+marshmallow-dataclass = "*"
+marshmallow-enum = "*"
 
 [dev-packages]
 
