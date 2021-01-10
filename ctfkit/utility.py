@@ -1,13 +1,12 @@
 """This file includes -- as the name says -- utility functions, such as conversions, path-related operations, common checks...
 """
 
-from inspect import Parameter
 from json import loads
 import os
 from enum import Enum
-from typing import Dict, Optional
+from typing import Any, Generic, Optional, Type, TypeVar
 
-from click import Path
+from click import Path, Parameter
 from click.core import Context
 from marshmallow.schema import Schema
 from marshmallow.utils import pprint
@@ -15,15 +14,16 @@ from marshmallow_dataclass import class_schema
 from yaml import load, safe_load
 from yaml.loader import SafeLoader
 
+T = TypeVar('T')
 
-class ConfigLoader(Path):
-    base_cls: type
+class ConfigLoader(Path, Generic[T]):
+    base_cls: Type[T]
 
-    def __init__(self, base_cls: type) -> None:
+    def __init__(self, base_cls: Type[T]) -> None:
         super().__init__(exists=True, file_okay=True, dir_okay=False, readable=True)
         self.base_cls = base_cls
 
-    def convert(self, value: str, param: Optional[Parameter], ctx: Optional[Context]) -> Path:
+    def convert(self, value: str, param: Optional[Parameter], ctx: Optional[Context]) -> Any:
         # Load raw config using the default implementation from click
         config_content: str = super().convert(value, param, ctx)
 
@@ -34,7 +34,7 @@ class ConfigLoader(Path):
         config_schema: Schema = class_schema(self.base_cls)()
 
         # Cast the dict to a real CtfConfig instance
-        config: self.base_cls = config_schema.load(config_yaml)
+        config = config_schema.load(config_yaml)
 
         return config
 
@@ -99,12 +99,3 @@ def check_installation() -> None:
         print("Installation is complete! You can use CTF Kit correctly")
     else:
         print("CTF Kit is not installed correctly, you may have to initiate ctfkit again")
-
-
-def enum_to_regex(enum: Enum) -> str:
-    """Create a regex which match the provided enumerations
-
-    :return: A regex matching any of the enumeration's values
-    :rtype: str
-    """
-    return r"^(" + r"|".join(list(map(lambda symbol: symbol.value, enum))) + r")$"

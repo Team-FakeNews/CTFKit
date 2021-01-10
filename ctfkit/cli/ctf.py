@@ -1,14 +1,16 @@
-import constructs
+import time
+
 from cdktf import App
 from ctfkit.terraform import CtfStack
 from ctfkit.models.hosting_provider import HOSTING_PROVIDER
 from click.core import Context
 import click
 from click.exceptions import BadParameter
+from yaspin import yaspin  # type: ignore
+from yaspin.spinners import Spinners  # type: ignore
 
-from ctfkit.models import HOSTING_ENVIRONMENT, DeploymentConfig
+from ctfkit.models import CtfConfig, DeploymentConfig, HOSTING_ENVIRONMENT
 from ctfkit.utility import ConfigLoader
-from ctfkit.models import CtfConfig
 from ctfkit.terraform.k8s_cluster import gcp
 
 
@@ -47,4 +49,6 @@ def plan(config: CtfConfig, environment: str):
     if deployment_config.provider == HOSTING_PROVIDER.GCP:
         gcp.GcpK8sCluster(stack, "cluster", config, deployment_config)
 
-    app.synth()
+    with yaspin(Spinners.dots12, text="Generating infrastructure configuration ...") as spinner:
+        app.synth()
+        spinner.ok("✅ ")
