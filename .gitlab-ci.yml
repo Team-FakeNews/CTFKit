@@ -1,0 +1,5 @@
+typecheck:
+    image: python:3.8
+    script:
+        - pipenv install
+        - pipenv run mypy ctfkit
