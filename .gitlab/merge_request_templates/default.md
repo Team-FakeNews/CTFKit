@@ -7,8 +7,7 @@
 A presentation of the feature added, why have you done it and how.
 Do not hesitate to explain how your feature should behave.
 
-Ex:
-
+__Ex:__
 Add a little easter egg for fun in the tool. I've added a secret command :
 ```
 $ ctfkit easter egg
