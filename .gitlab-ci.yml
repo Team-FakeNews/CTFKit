@@ -29,6 +29,7 @@ unittest:
 pylint:
     stage: test
     image: python:3.8
+    allow_failure: true
     script:
         - pipenv run python3 -m pylint
             --exit-zero
