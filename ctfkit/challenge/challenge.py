@@ -34,6 +34,7 @@ class Challenge:
     @staticmethod
     def from_yaml(file):
         """Returns a Challenge object by parsing a given yaml config file
+        You can find a challenge.yml example file at /example/challenge/01-test/
         For the moment this method uses strictyaml for ease, but a config loader will be implemented, see the code in 'TODO:' below
 
         :param file: The path to the yaml config file for a challenge
@@ -41,25 +42,7 @@ class Challenge:
         :return: The Challenge object corresponding to the config file
         :rtype: Challenge
         """
-        """Example YAML file:
-        name: chall
-        description: blablabla
-        points: 10
-        category: pwn
-        author: 0xLaPoutre
-        files:
-            - chall.jpg
-        container:
-            - proto: tcp
-            port: 1337
-            - proto: udp
-            port: 71337
-
-        # Not implemented yet:
-        # vm:
-        #    idk mate but it's for virtual machines
-        """
-        """TODO:
+        """TODO: implement once the MR of this feature is accepted
         from ctfkit.utility import ConfigLoader
         from ctfkit.models import ChallengeConfig
 

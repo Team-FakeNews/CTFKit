@@ -1,4 +1,4 @@
-"""The system tree for challenges:
+"""The project tree:
 
 # Each challenge is an automaticaly generated git repo
 challenge_1/
@@ -21,6 +21,7 @@ from ctfkit.utility import *
 def new_challenge(name):
     """Create a new challenge git repo for CTF Kit
     Each challenge is a git repo in the `your_project/dev/` directory, which CTF kit will use to update your challenges
+    TODO: write content of challenge.yml on creation
 
     :param name: The name of the challenge
     :type name: str
@@ -40,13 +41,14 @@ def new_challenge(name):
     /challenge_name/
         files/              # files for a challenge (image, text file given to players)
         src/                # source code of challenge
+        challenge.yml       # config file for the challenge
         flag                # text file containing the flag
         Dockerfile          # for production
         docker-compose.yml  # for testing locally
     """
     # We initiate the challenge's directory with default files
     default_dirs = ["files", "src"]
-    default_files = ["flag", "Dockerfile", "docker-compose.yml"]
+    default_files = ["challenge.yml", "flag", "Dockerfile", "docker-compose.yml"]
 
     # Create all directories with .gitignore files to preserve them with commit
     for x in default_dirs:
@@ -61,7 +63,7 @@ def new_challenge(name):
         touch(os.path.join(challenge_path, x))
     repo.index.add(default_files)
 
-    repo.index.commit("CTF Kit challenge initial commit")
+    repo.index.commit(f"CTF Kit challenge '{name}' initial commit")
     print(f"Done! You can check it at {challenge_path}")
 
 
