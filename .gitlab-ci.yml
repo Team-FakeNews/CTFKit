@@ -24,7 +24,7 @@ unittest:
     stage: test
     image: python:3.8
     script:
-        - pipenv run python3 -m unittest tests/*.py
+        - pipenv run python3 -m unittest discover tests
 
 pylint:
     stage: test
