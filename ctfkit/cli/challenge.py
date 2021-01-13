@@ -1,7 +1,7 @@
 import click
 import docker
 from yaspin import yaspin
-
+import ctfkit.utility
 
 @click.group()
 def cli():
@@ -17,24 +17,23 @@ def init():
 @click.argument('challenge', required=True)
 def run(challenge):
     """Run a challenge inside a Docker container.
-    For the moment this method don't add specific parameters to the container (such as port) but it will when a challenge object will be available.
+    For the moment this method doesn't add any specific parameters to the container (such as port) but it will when a challenge object will be available.
     First a Docker image is build using the Dockerfile located in the challenge's directory and then run a Docker container with the builded image.
 
     :param challenge: The name of the challenge to run
     :type file: str
-    :return: None
-    :rtype: None
     """
     """TODO:
-        Use a challenge object to get the information related to the challenge path, parameters like needed ports or volumes)
+        Check if the challenge exists
+        Use a challenge object to get the information related to the challenge such as path, parameters like required ports or volumes)
     """
     try:
-        # Instance of the docker env
+        # Instance of the docker environment
         client = docker.from_env()
     except:
-            print("\n❌ Error, please check that Docker is installed and that your user has the proper rights to run it. :\n")
+        print("\n❌ Error, please check that Docker is installed and that your user has the proper rights to run it.")
     # Build the docker image
-    tmp_challenge_path = "./"+challenge
+    tmp_challenge_path = ctfkit.utility.get_current_path()+"/"+challenge
     image_name = "ctfkit:"+challenge
     with yaspin(text="Starting challenge "+challenge, color="cyan") as sp:
         try:
@@ -42,9 +41,9 @@ def run(challenge):
                 path=tmp_challenge_path, 
                 rm=True, forcerm=True, 
                 tag=image_name)
-            sp.write("✔ Image building")
+            sp.write("✔ Building image")
         except:
-            print("\n❌ Error while building Docker Image, please check if a Dockerfile exists and if it's correct :\n")
+            print("\n❌ Error while building the Docker image, please check if a Dockerfile exists and if it's correct.")
             exit(1)
         try:
             client.containers.run(
@@ -54,7 +53,7 @@ def run(challenge):
                 name="ctfkit_"+challenge)
             sp.ok("✔")
         except:
-            print("\n❌ Error, unable to run a Docker container based on the image "+image_name+" :\n")
+            print("\n❌ Error, unable to run a Docker container based on the image "+image_name)
             exit(1)
 
 
@@ -66,15 +65,17 @@ def stop(challenge):
 
     :param challenge: The name of the running challenge.
     :type file: str
-    :return: None
-    :rtype: None
+    """
+    """TODO:
+        Check if the challenge is running and if it's an existing challenge.
+        Use a challenge object to get the information related to the challenge such as path, parameters like required ports or volumes)
     """
     try:
-        # Instance of the docker env
+        # Instance of the docker environment
         client = docker.from_env()
     except:
-            print("\n❌ Error, please check that Docker is installed and that your user has the proper rights to run it. :\n")
-            exit(1)
+        print("\n❌ Error, please check that Docker is installed and that your user has the proper rights to run it.")
+        exit(1)
     container_name = "ctfkit_"+challenge
     with yaspin(text="Stopping challenge "+challenge, color="cyan") as sp:
         # Get the container related to the challenge
@@ -89,7 +90,7 @@ def stop(challenge):
         except:
             print("\n❌ Error, unable to stop the Docker container :\n")
             exit(1)
-        sp.write("✔ Challenge stopping")
+        sp.write("✔ Stopping Docker container")
         # Remove the related image
         try:
             client.images.remove(
@@ -98,5 +99,5 @@ def stop(challenge):
         except:
             print("\n❌ Error, unable to remove the Docker image related to the challenge :\n")
             exit(1)
-        sp.write("✔ Image removing")
+        sp.write("✔ Removing image")
         sp.ok("✔")
