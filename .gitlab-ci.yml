@@ -1,17 +1,36 @@
+variables:
+    WORKON_HOME: .pipenv/venvs
+    PIP_CACHE_DIR: .pipenv/pipcache
+
+cache:
+    key:
+        files:
+            - Pipfile.lock
+    paths:
+        - .pipenv
+
+default:
+    before_script:
+        - pip3 install pipenv
+        - pipenv install
+
 typecheck:
     stage: test
     image: python:3.8
-    before_script:
-        - pip3 install pipenv
     script:
-        - pipenv install
         - pipenv run mypy ctfkit
 
 unittest:
     stage: test
     image: python:3.8
-    before_script:
-        - pip3 install pipenv
-        - pipenv install
     script:
         - pipenv run python3 -m unittest tests/*.py
+
+pylint:
+    stage: analysis
+    image: python:3.8
+    script:
+        - pipenv run python3-m pylint
+            --exit-zero
+            --output-format=pylint_gitlab.GitlabCodeClimateReporter
+            ctfkit > codeclimate.json

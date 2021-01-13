@@ -16,6 +16,7 @@ marshmallow-dataclass = "*"
 marshmallow-enum = "*"
 yaspin = "*"
 mypy = "*"
+pylint-gitlab = "*"
 
 [dev-packages]
 
