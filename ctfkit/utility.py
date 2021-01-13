@@ -5,7 +5,7 @@ import os
 from enum import Enum
 
 
-def get_current_path():
+def get_current_path() -> str:
     """Returns the current path in the system
 
     :return: The path of the current directory in the system
@@ -14,7 +14,7 @@ def get_current_path():
     return os.path.abspath(".")
 
 
-def touch(file, data=None):
+def touch(file: str, data=None) -> None:
     """Creates a file if it does not already exists, and write the content of `data` in it
 
     :param file: The file to create
@@ -33,7 +33,7 @@ def touch(file, data=None):
         f.close()
 
 
-def mkdir(dir):
+def mkdir(dir: str) -> None:
     """Creates a directory if it does not already exists
 
     :param dir: The directory to create
@@ -48,7 +48,7 @@ def mkdir(dir):
             print(e)
 
 
-def check_installation():
+def check_installation() -> None:
     """Checks the installation of CTF Kit on system (ie. are all files here?)
     For the moment, only the challenges/ directory is checked
     """

@@ -13,7 +13,7 @@ class Challenge:
     :param category: 
     """
 
-    def __init__(self, name, description, points, category, author, has_files, has_container, files=None, ports=None):
+    def __init__(self, name: str, description: str, points: int, category: str, author: str, has_files: bool, has_container: bool, files=None, ports=None) -> Challenge:
         """Constructor method
         """
         self.name = name
@@ -32,7 +32,7 @@ class Challenge:
         return f"""{self.name} - {self.points}pts ({self.author})"""
 
     @staticmethod
-    def from_yaml(file):
+    def from_yaml(file: str) -> Challenge:
         """Returns a Challenge object by parsing a given yaml config file
         You can find a challenge.yml example file at /example/challenge/01-test/
         For the moment this method uses strictyaml for ease, but a config loader will be implemented, see the code in 'TODO:' below

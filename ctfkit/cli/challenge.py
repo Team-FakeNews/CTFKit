@@ -4,7 +4,7 @@ import validators
 from . import create_challenge
 
 
-def check_challenge_name(name):
+def check_challenge_name(name: str) -> bool:
     """Check if a given name is valid for a new challenge
 
     :param name: The name to check
@@ -19,7 +19,7 @@ def check_challenge_name(name):
         return True
 
 
-def check_challenge_url(url):
+def check_challenge_url(url: str) -> bool:
     """Check if a given URL is valid for a challenge import
 
     :param url: The URL to check
@@ -35,13 +35,13 @@ def check_challenge_url(url):
 
 
 @click.group()
-def cli():
+def cli() -> None:
     pass
 
 
 @cli.command('new')
 @click.argument('challenge_name', nargs=1)
-def new(challenge_name):
+def new(challenge_name: str) -> None:
     """<challenge_name>: Creates a CTF Kit challenge repo for a new challenge
 
     :param challenge_name: The name of the challenge to create
@@ -53,7 +53,7 @@ def new(challenge_name):
 
 @cli.command('add')
 @click.argument('challenge_url', nargs=1)
-def add(challenge_url):
+def add(challenge_url: str) -> None:
     """<challenge_url>: Import a challenge with its URL (must be a GIT repo)
 
     :param challenge_url: The URL of the challenge to import

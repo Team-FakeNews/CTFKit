@@ -18,7 +18,7 @@ from git import Repo
 from ctfkit.utility import *
 
 
-def new_challenge(name):
+def new_challenge(name: str) -> None:
     """Create a new challenge git repo for CTF Kit
     Each challenge is a git repo in the `your_project/dev/` directory, which CTF kit will use to update your challenges
     TODO: write content of challenge.yml on creation
@@ -67,7 +67,7 @@ def new_challenge(name):
     print(f"Done! You can check it at {challenge_path}")
 
 
-def add_challenge(url):
+def add_challenge(url: str) -> None:
     """Import a challenge with its URL
 
     :param url: The URL of the challenge (CTF Kit sub-module)

@@ -15,8 +15,8 @@ This branch should be using :
 ## How to use (dev)
 
 ```sh
-pipenv install
 pipenv shell
+pipenv install
 pip3 install -e .
 ctfkit
 ```
