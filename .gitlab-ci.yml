@@ -30,7 +30,11 @@ pylint:
     stage: test
     image: python:3.8
     script:
-        - pipenv run python3-m pylint
+        - pipenv run python3 -m pylint
             --exit-zero
             --output-format=pylint_gitlab.GitlabCodeClimateReporter
             ctfkit > codeclimate.json
+    artifacts:
+        reports:
+            codequality: codeclimate.json
+        when: always
