@@ -27,7 +27,7 @@ unittest:
         - pipenv run python3 -m unittest tests/*.py
 
 pylint:
-    stage: analysis
+    stage: test
     image: python:3.8
     script:
         - pipenv run python3-m pylint
