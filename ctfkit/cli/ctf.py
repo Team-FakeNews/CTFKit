@@ -41,6 +41,7 @@ def plan(config: CtfConfig, environment: str):
     """
     deployment_config: DeploymentConfig
 
+    # Find the requested environment
     try:
         deployment_config = next(
             elem for elem in config.deployments if elem.environment.value == environment)
@@ -48,10 +49,12 @@ def plan(config: CtfConfig, environment: str):
     except StopIteration:
         raise BadParameter(f'No "{environment}" environment could be found in your configuration')
 
+    # Declare out terraform stack
     app = App(outdir='.tfout')
     stack = CtfStack(app, deployment_config.environment.value)
 
     if deployment_config.provider == HostingProvider.GCP:
+        # Declare a GCP cluster while passing its configuration
         gcp.GcpK8sCluster(stack, "cluster", config, deployment_config)
 
     with yaspin(Spinners.dots12, text="Generating infrastructure configuration ...") as spinner:

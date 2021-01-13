@@ -6,6 +6,10 @@ from ctfkit.models import CtfConfig, DeploymentConfig
 
 
 class GcpK8sCluster(Resource):
+    """
+    Manage a Google Kubernetes Engine to build up our cluster
+    Some settings can be managed by the user through the provided configuration
+    """
 
     def __init__(
             self,
