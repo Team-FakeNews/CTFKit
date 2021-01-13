@@ -1,20 +1,18 @@
-from pprint import pformat, pprint
-from typing import Dict, List, Optional
+from pprint import pformat
+from typing import List
 from dataclasses import dataclass, field
-from yaml import load, SafeLoader
 
-from click import Path
-from click.core import Context, Parameter
 from slugify import slugify
-from marshmallow_dataclass import class_schema
 
-from .hosting_environment import HOSTING_ENVIRONMENT
-from .hosting_provider import HOSTING_PROVIDER
+from .hosting_environment import HostingEnvironment
+from .hosting_provider import HostingProvider
 
 
 @dataclass
 class ClusterConfig:
-
+    """
+    Configuration model common to each cloud provider
+    """
     machine_type: str = 'n1-standard-4'
     node_count: int = 1
 
@@ -24,11 +22,16 @@ class ClusterConfig:
 
 @dataclass
 class DeploymentConfig:
-
-    environment: HOSTING_ENVIRONMENT = field(
-        default=None, metadata={"by_value": True}) # type: ignore
-    provider: HOSTING_PROVIDER = field(
-        default=None, metadata={"by_value": True}) # type: ignore
+    """
+    The model of a deployment configuration.
+    An environment is an infrastructure to be configured by ctfKit
+    It can be either a private testing environment, or a production environment
+    which should be the public and runing CTF.
+    """
+    environment: HostingEnvironment = field(
+        default=None, metadata={"by_value": True})  # type: ignore
+    provider: HostingProvider = field(
+        default=None, metadata={"by_value": True})  # type: ignore
     cluster: ClusterConfig = ClusterConfig()
 
     def __repr__(self) -> str:
@@ -37,13 +40,20 @@ class DeploymentConfig:
 
 @dataclass
 class CtfConfig():
-
+    """
+    The root configuration of a CTF.
+    It contains every each information which will be used by ctfkit
+    in order the manage each environment.
+    """
     kind: str
     name: str
     challenges: List[str] = field(default_factory=list)
     deployments: List[DeploymentConfig] = field(default_factory=list)
 
-    def getSlug(self) -> str:
+    def get_slug(self) -> str:
+        """
+        Slugified version of the ctf name
+        """
         return slugify(self.name)
 
     def __repr__(self) -> str:

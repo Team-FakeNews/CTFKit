@@ -10,6 +10,7 @@ from marshmallow import ValidationError
 from marshmallow_dataclass import dataclass
 from ctfkit.utility import ConfigLoader
 
+
 @dataclass
 class ExampleDataclass:
     a: str
@@ -27,7 +28,8 @@ class TestConfigLoader(TestCase):
 
     def test_nominal(self):
         with self.create_temp('a: "str_value"\nb: 10\n') as config_file:
-            instance: ExampleDataclass = ConfigLoader(ExampleDataclass).convert(config_file.name)
+            instance: ExampleDataclass = ConfigLoader(
+                ExampleDataclass).convert(config_file.name)
 
             self.assertIsInstance(instance, ExampleDataclass)
             self.assertEqual(instance.a, "str_value")

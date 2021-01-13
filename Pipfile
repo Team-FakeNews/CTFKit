@@ -17,6 +17,7 @@ marshmallow-enum = "*"
 yaspin = "*"
 mypy = "*"
 pylint-gitlab = "*"
+pylint-enums = "*"
 
 [dev-packages]
 

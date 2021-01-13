@@ -1,23 +1,28 @@
-"""This file includes -- as the name says -- utility functions, such as conversions, path-related operations, common checks...
+"""This file includes -- as the name says -- utility functions, such as conversions,
+path-related operations, common checks...
 """
 
-from json import loads
 import os
-from enum import Enum
 from dataclasses import is_dataclass
 from typing import Any, Generic, Optional, Type, TypeVar
 
 from click import Path, Parameter
 from click.core import Context
 from marshmallow.schema import Schema
-from marshmallow.utils import pprint
 from marshmallow_dataclass import class_schema
 from yaml import load
 from yaml.loader import SafeLoader
 
 T = TypeVar('T')
 
+
 class ConfigLoader(Path, Generic[T]):
+    """
+    Utility class to which parse, validate, and do marshmalling from a yaml file
+    to the specified model class. The model must have the @dataclass decorator.
+    The dataclass should carefully declare every attributes types which will
+    allows to detemine the matching schema.
+    """
     base_cls: Type[T]
 
     def __init__(self, base_cls: Type[T]) -> None:
@@ -28,7 +33,11 @@ class ConfigLoader(Path, Generic[T]):
 
         self.base_cls = base_cls
 
-    def convert(self, value: str, param: Optional[Parameter] = None, ctx: Optional[Context] = None) -> Any:
+    def convert(
+            self,
+            value: str,
+            param: Optional[Parameter] = None,
+            ctx: Optional[Context] = None) -> Any:
         # Load raw config using the default implementation from click
         config_content: str = super().convert(value, param, ctx)
 

@@ -1,5 +1,9 @@
 from enum import Enum
 
 
-class HOSTING_PROVIDER(Enum):
-    GCP = "gcp"
+class HostingProvider(Enum):
+    """
+    Represent a compatible hosting provider
+    to which the configured infrastructure will be deployed
+    """
+    GCP: str = "gcp"

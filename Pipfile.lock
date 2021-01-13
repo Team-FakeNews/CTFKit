@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "e8353f506e0a6f0cfb482b4ef0868020634ebdac934746f5cb19b8eb590c35fe"
+            "sha256": "8a2ba0bf6839e4e405643e1595f109e10d723bf8ab950cc322ba7b6faca2a5df"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -260,6 +260,14 @@
                 "sha256:dd506acce0427e9e08fb87274bcaa953d38b50a58207170dbf5b36cf3e16957b"
             ],
             "version": "==2.5.2"
+        },
+        "pylint-enums": {
+            "hashes": [
+                "sha256:20a98d810629dd02663088d10821db45490ee83f26e3ebdfc5f4e90a06b44738",
+                "sha256:8515f438f1ea1778b37bd6293e2528b4d1f49dfcab97201d6317e3134b65c493"
+            ],
+            "index": "pypi",
+            "version": "==0.0.5"
         },
         "pylint-gitlab": {
             "hashes": [
