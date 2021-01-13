@@ -4,13 +4,13 @@ points: 10
 category: pwn
 author: 0xLaPoutre
 files:
-  - chall.jpg
+    - chall.jpg
 container:
-  - proto: tcp
-    port: 1337
-  - proto: udp
-    port: 71337
+    - proto: tcp
+      port: 1337
+    - proto: udp
+      port: 71337
 
 # Not implemented yet:
 # vm:
-#    idk mate but it's for virtual machines
+#     idk mate but it's for virtual machines
