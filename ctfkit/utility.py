@@ -4,6 +4,7 @@
 from json import loads
 import os
 from enum import Enum
+from dataclasses import is_dataclass
 from typing import Any, Generic, Optional, Type, TypeVar
 
 from click import Path, Parameter
@@ -11,7 +12,7 @@ from click.core import Context
 from marshmallow.schema import Schema
 from marshmallow.utils import pprint
 from marshmallow_dataclass import class_schema
-from yaml import load, safe_load
+from yaml import load
 from yaml.loader import SafeLoader
 
 T = TypeVar('T')
@@ -21,14 +22,19 @@ class ConfigLoader(Path, Generic[T]):
 
     def __init__(self, base_cls: Type[T]) -> None:
         super().__init__(exists=True, file_okay=True, dir_okay=False, readable=True)
+
+        if not is_dataclass(base_cls):
+            raise ValueError('The base_cls argument my be a dataclass')
+
         self.base_cls = base_cls
 
-    def convert(self, value: str, param: Optional[Parameter], ctx: Optional[Context]) -> Any:
+    def convert(self, value: str, param: Optional[Parameter] = None, ctx: Optional[Context] = None) -> Any:
         # Load raw config using the default implementation from click
         config_content: str = super().convert(value, param, ctx)
 
         # Parse YAML
-        config_yaml = load(open(config_content), Loader=SafeLoader)
+        with open(config_content) as file_hander:
+            config_yaml = load(file_hander, Loader=SafeLoader)
 
         # Generate the marshmallow schema using the dataclass typings
         config_schema: Schema = class_schema(self.base_cls)()
