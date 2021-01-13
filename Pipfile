@@ -4,10 +4,11 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-validators = "*"
 click = "*"
+GitPython = "*"
 trafaret = "*"
 trafaret-config = "*"
+validators = "*"
 
 [dev-packages]
 

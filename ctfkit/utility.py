@@ -5,7 +5,7 @@ import os
 from enum import Enum
 
 
-def get_current_path():
+def get_current_path() -> str:
     """Returns the current path in the system
 
     :return: The path of the current directory in the system
@@ -14,7 +14,41 @@ def get_current_path():
     return os.path.abspath(".")
 
 
-def check_installation():
+def touch(file: str, data=None) -> None:
+    """Creates a file if it does not already exists, and write the content of `data` in it
+
+    :param file: The file to create
+    :type file: str
+    :param data: The data to write into `file`
+    :type data: str
+    """
+    if os.path.exists(file):
+        print(f"File {file} already exists")
+    else:
+        f = open(file, "w")
+        # If data has been specified
+        if data:
+            f.write(data)
+
+        f.close()
+
+
+def mkdir(dir: str) -> None:
+    """Creates a directory if it does not already exists
+
+    :param dir: The directory to create
+    :type dir: str
+    """
+    if os.path.exists(dir) and os.path.isdir(dir):
+        print(f"Directory {dir} already exists")
+    else:
+        try:
+            os.mkdir(dir)
+        except OSError as e:
+            print(e)
+
+
+def check_installation() -> None:
     """Checks the installation of CTF Kit on system (ie. are all files here?)
     For the moment, only the challenges/ directory is checked
     """
