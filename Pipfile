@@ -8,8 +8,8 @@ validators = "*"
 click = "*"
 trafaret = "*"
 trafaret-config = "*"
-docker ="*"
-yaspin ="*"
+docker = "*"
+yaspin = "*"
 
 [dev-packages]
 
