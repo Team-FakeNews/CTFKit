@@ -1,3 +1,4 @@
+from os import getcwd
 from cdktf import App
 import click
 from click.core import Context
@@ -50,7 +51,7 @@ def plan(config: CtfConfig, environment: str):
         raise BadParameter(f'No "{environment}" environment could be found in your configuration')
 
     # Declare out terraform stack
-    app = App(outdir='.tfout')
+    app = App(outdir=getcwd() + '/.tfout')
     stack = CtfStack(app, deployment_config.environment.value)
 
     if deployment_config.provider == HostingProvider.GCP:
