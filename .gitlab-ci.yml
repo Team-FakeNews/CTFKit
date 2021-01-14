@@ -23,6 +23,8 @@ typecheck:
 unittest:
     stage: test
     image: python:3.8
+    before_script:
+        - apk add nodejs
     script:
         - pipenv run python3 -m unittest discover tests
 
