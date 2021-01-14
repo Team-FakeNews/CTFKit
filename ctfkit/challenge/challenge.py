@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from strictyaml import load, Map, Str, Int, Seq
+from strictyaml import load, Map, Str, Int, Seq  # type: ignore
 
 
 class Challenge:
