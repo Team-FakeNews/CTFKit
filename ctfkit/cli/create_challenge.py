@@ -13,7 +13,7 @@ challenge_2/
         challenges/
 """
 
-from git import Repo
+from git import Repo  # type: ignore
 
 from ctfkit.utility import *
 

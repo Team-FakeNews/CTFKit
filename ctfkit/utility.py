@@ -1,8 +1,66 @@
-"""This file includes -- as the name says -- utility functions, such as conversions, path-related operations, common checks...
+"""This file includes -- as the name says -- utility functions, such as conversions,
+path-related operations, common checks...
 """
 
 import os
-from enum import Enum
+from dataclasses import is_dataclass
+from typing import Any, Generic, Optional, Type, TypeVar
+
+from click import Path, Parameter
+from click.core import Context
+from marshmallow.schema import Schema
+from marshmallow_dataclass import class_schema
+from yaml import load
+from yaml.loader import SafeLoader
+
+T = TypeVar('T')
+
+
+class ConfigLoader(Path, Generic[T]):
+    """
+    Utility class to which parse, validate, and do marshmalling from a yaml file
+    to the specified model class. The model must have the @dataclass decorator.
+    The dataclass should carefully declare every attributes types which will
+    allows to detemine the matching schema.
+
+    :param base_cls: The dataclass which represent the yaml config to import
+    """
+    base_cls: Type[T]
+
+    def __init__(self, base_cls: Type[T]) -> None:
+        super().__init__(exists=True, file_okay=True, dir_okay=False, readable=True)
+
+        if not is_dataclass(base_cls):
+            raise ValueError('The base_cls argument my be a dataclass')
+
+        self.base_cls = base_cls
+
+    def convert(
+            self,
+            value: str,
+            param: Optional[Parameter] = None,
+            ctx: Optional[Context] = None) -> Any:
+        """
+        Reads the specified yaml file, then validate its schema and marshamall each
+        value into a new instance of the previously provided class.
+
+        :param path: Path to the yaml file
+        :return: A new instance of the dataclass filled with attributes from the yaml file
+        """
+        # Load raw config using the default implementation from click
+        config_content: str = super().convert(value, param, ctx)
+
+        # Parse YAML
+        with open(config_content) as file_hander:
+            config_yaml = load(file_hander, Loader=SafeLoader)
+
+        # Generate the marshmallow schema using the dataclass typings
+        config_schema: Schema = class_schema(self.base_cls)()
+
+        # Cast the dict to a real CtfConfig instance
+        config = config_schema.load(config_yaml)
+
+        return config
 
 
 def get_current_path() -> str:
@@ -65,12 +123,3 @@ def check_installation() -> None:
         print("Installation is complete! You can use CTF Kit correctly")
     else:
         print("CTF Kit is not installed correctly, you may have to initiate ctfkit again")
-
-
-def enum_to_regex(enum: Enum) -> str:
-    """Create a regex which match the provided enumerations
-
-    :return: A regex matching any of the enumeration's values
-    :rtype: str
-    """
-    return r"^(" + r"|".join(list(map(lambda symbol: symbol.value, enum))) + r")$"

@@ -1,4 +1,6 @@
-from strictyaml import load, Map, Str, Int, Seq
+from __future__ import annotations
+
+from strictyaml import load, Map, Str, Int, Seq  # type: ignore
 
 
 class Challenge:
@@ -13,7 +15,7 @@ class Challenge:
     :param category: 
     """
 
-    def __init__(self, name: str, description: str, points: int, category: str, author: str, has_files: bool, has_container: bool, files=None, ports=None) -> Challenge:
+    def __init__(self, name: str, description: str, points: int, category: str, author: str, has_files: bool, has_container: bool, files=None, ports=None) -> None:
         """Constructor method
         """
         self.name = name

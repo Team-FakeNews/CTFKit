@@ -1,5 +1,5 @@
 import click
-import validators
+import validators  # type: ignore
 
 from . import create_challenge
 

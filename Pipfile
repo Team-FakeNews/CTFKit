@@ -9,6 +9,16 @@ GitPython = "*"
 trafaret = "*"
 trafaret-config = "*"
 validators = "*"
+cdktf = "*"
+cdktf-cdktf-provider-google = "*"
+python-slugify = "*"
+marshmallow-dataclass = "*"
+marshmallow-enum = "*"
+yaspin = "*"
+mypy = "*"
+pylint-gitlab = "*"
+pylint-enums = "*"
+strictyaml = "*"
 
 [dev-packages]
 
