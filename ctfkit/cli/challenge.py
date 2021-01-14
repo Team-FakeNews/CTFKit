@@ -34,7 +34,7 @@ def run(challenge: str) -> None:
         print("\n❌ Error, please check that Docker is installed and that your user has the proper rights to run it.")
     # Build the docker image
     tmp_challenge_path = ctfkit.utility.get_current_path()+"/"+challenge
-    image_name = "ctfkit:"+challenge
+    image_name = f"ctfkit:{challenge}"
     with yaspin(text="Starting challenge "+challenge, color="cyan") as sp:
         try:
             client.images.build(
