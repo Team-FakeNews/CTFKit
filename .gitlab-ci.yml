@@ -10,27 +10,26 @@ cache:
         - .pipenv
 
 default:
+    image: python:3.8-alpine
     before_script:
+        - apk add musl-dev gcc
         - pip3 install pipenv
         - pipenv install
 
 typecheck:
     stage: test
-    image: python:3.8
     script:
         - pipenv run mypy ctfkit
 
 unittest:
     stage: test
-    image: python:3.8
     before_script:
-        - apk add nodejs
+        - apk add nodejs git gcc 
     script:
-        - pipenv run python3 -m unittest discover tests
+        - pipenv run python3 -m unittest discover tests -b
 
 pylint:
     stage: test
-    image: python:3.8
     allow_failure: true
     script:
         - pipenv run python3 -m pylint
