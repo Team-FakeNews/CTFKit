@@ -22,6 +22,8 @@ class ConfigLoader(Path, Generic[T]):
     to the specified model class. The model must have the @dataclass decorator.
     The dataclass should carefully declare every attributes types which will
     allows to detemine the matching schema.
+
+    :param base_cls: The dataclass which represent the yaml config to import
     """
     base_cls: Type[T]
 
@@ -38,6 +40,13 @@ class ConfigLoader(Path, Generic[T]):
             value: str,
             param: Optional[Parameter] = None,
             ctx: Optional[Context] = None) -> Any:
+        """
+        Reads the specified yaml file, then validate its schema and marshamall each
+        value into a new instance of the previously provided class.
+
+        :param path: Path to the yaml file
+        :return: A new instance of the dataclass filled with attributes from the yaml file
+        """
         # Load raw config using the default implementation from click
         config_content: str = super().convert(value, param, ctx)
 
