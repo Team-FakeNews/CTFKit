@@ -15,7 +15,7 @@ def init():
 
 @cli.command('run')
 @click.argument('challenge', required=True)
-def run(challenge):
+def run(challenge: str) -> None:
     """Run a challenge inside a Docker container.
     For the moment this method doesn't add any specific parameters to the container (such as port) but it will when a challenge object will be available.
     First a Docker image is build using the Dockerfile located in the challenge's directory and then run a Docker container with the builded image.
