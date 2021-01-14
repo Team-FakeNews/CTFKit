@@ -24,7 +24,8 @@ typecheck:
 unittest:
     stage: test
     before_script:
-        - apk add nodejs git gcc 
+        - apk add nodejs git musl-dev gcc
+        - pip3 install pipenv
     script:
         - pipenv run python3 -m unittest discover tests -b
 
