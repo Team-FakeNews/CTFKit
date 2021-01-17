@@ -35,7 +35,7 @@ def run(challenge: str) -> None:
     # Build the docker image
     tmp_challenge_path = ctfkit.utility.get_current_path()+"/"+challenge
     image_name = f"ctfkit:{challenge}"
-    with yaspin(text="Starting challenge "+challenge, color="cyan") as sp:
+    with yaspin(text=f"Starting challenge {challenge}", color="cyan") as sp:
         try:
             client.images.build(
                 path=tmp_challenge_path, 
@@ -50,16 +50,16 @@ def run(challenge: str) -> None:
                 image_name, 
                 auto_remove=True, 
                 detach=True, 
-                name="ctfkit_"+challenge)
+                name=f"ctfkit_{challenge}")
             sp.ok("✔")
         except:
-            print("\n❌ Error, unable to run a Docker container based on the image "+image_name)
+            print(f"\n❌ Error, unable to run a Docker container based on the image {image_name}")
             exit(1)
 
 
 @cli.command('stop')
 @click.argument('challenge', required=True)
-def stop(challenge):
+def stop(challenge: str) -> None:
     """Stop a challenge running inside a Docker container.
     First we stop the container using his name, then we delete the related Docker image.
 
@@ -76,13 +76,13 @@ def stop(challenge):
     except:
         print("\n❌ Error, please check that Docker is installed and that your user has the proper rights to run it.")
         exit(1)
-    container_name = "ctfkit_"+challenge
-    with yaspin(text="Stopping challenge "+challenge, color="cyan") as sp:
+    container_name = f"ctfkit_{challenge}"
+    with yaspin(text=f"Stopping challenge {challenge}", color="cyan") as sp:
         # Get the container related to the challenge
         try:
             container = client.containers.get(container_name)
         except:
-            print("\n❌ Error, please check that the supplied challenge is running : "+container_name)
+            print(f"\n❌ Error, please check that the supplied challenge is running : {container_name}")
             exit(1)
         # Stop the container
         try:
