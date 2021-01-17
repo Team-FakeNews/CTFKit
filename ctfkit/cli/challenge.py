@@ -3,6 +3,7 @@ import docker
 from yaspin import yaspin
 import ctfkit.utility
 
+
 @click.group()
 def cli():
     pass
@@ -38,8 +39,8 @@ def run(challenge: str) -> None:
     with yaspin(text=f"Starting challenge {challenge}", color="cyan") as sp:
         try:
             client.images.build(
-                path=tmp_challenge_path, 
-                rm=True, forcerm=True, 
+                path=tmp_challenge_path,
+                rm=True, forcerm=True,
                 tag=image_name)
             sp.write("✔ Building image")
         except:
@@ -47,9 +48,9 @@ def run(challenge: str) -> None:
             exit(1)
         try:
             client.containers.run(
-                image_name, 
-                auto_remove=True, 
-                detach=True, 
+                image_name,
+                auto_remove=True,
+                detach=True,
                 name=f"ctfkit_{challenge}")
             sp.ok("✔")
         except:
@@ -94,7 +95,7 @@ def stop(challenge: str) -> None:
         # Remove the related image
         try:
             client.images.remove(
-                image=container.image.id, 
+                image=container.image.id,
                 force=True)
         except:
             print("\n❌ Error, unable to remove the Docker image related to the challenge :\n")
