@@ -1,11 +1,23 @@
 from pprint import pformat
 from typing import List
 from dataclasses import dataclass, field
+from click.exceptions import BadParameter
 
 from slugify import slugify
 
 from .hosting_environment import HostingEnvironment
 from .hosting_provider import HostingProvider
+
+
+@dataclass
+class GcpAuthConfig:
+    project: str
+    region: str
+    zone: str
+    credentials_file: str = 'credentials.json'
+
+    def __repr__(self) -> str:
+        return pformat(vars(self))
 
 
 @dataclass
@@ -33,6 +45,7 @@ class DeploymentConfig:
     provider: HostingProvider = field(
         default=None, metadata={"by_value": True})  # type: ignore
     cluster: ClusterConfig = ClusterConfig()
+    gcp: GcpAuthConfig = None
 
     def __repr__(self) -> str:
         return pformat(vars(self), indent=4)
@@ -55,6 +68,18 @@ class CtfConfig():
         Slugified version of the ctf name
         """
         return slugify(self.name)
+
+    def get_deployment(self, environment: HostingEnvironment) -> DeploymentConfig:
+        """
+        Find the matching configuration matching the requested Environment
+        :return: The environment config associated with the request environment
+        """
+        try:
+            return next(
+                elem for elem in self.deployments if elem.environment == environment)
+
+        except StopIteration:
+            raise BadParameter(f'No "{environment}" environment could be found in your configuration')
 
     def __repr__(self) -> str:
         return pformat(vars(self))

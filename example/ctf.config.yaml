@@ -3,5 +3,9 @@ name: fakectf
 challenges:
     - ./challs/01-test
 deployments:
-    - environment: testing
-      provider: gcp
+    -   environment: testing
+        provider: gcp
+        gcp:
+            project: interiut
+            region: europe-west1
+            zone: europe-west1-b
