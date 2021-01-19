@@ -1,42 +1,48 @@
-variables:
-    WORKON_HOME: .pipenv/venvs
-    PIP_CACHE_DIR: .pipenv/pipcache
+# You can override the included template(s) by including variable overrides
+# See https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
+# Note that environment variables can be set in several places
+# See https://docs.gitlab.com/ee/ci/variables/#priority-of-environment-variables
+include:
+    - template: Dependency-Scanning.gitlab-ci.yml
+    - template: Security/SAST.gitlab-ci.yml
+    - template: Security/License-Scanning.gitlab-ci.yml
 
-cache:
-    key:
-        files:
-            - Pipfile.lock
-    paths:
-        - .pipenv
+sast:
+    variables:
+        SAST_DEFAULT_ANALYZERS: bandit
+    stage: test
 
-default:
-    image: python:3.8-alpine
+
+typecheck:
+    stage: test
+    image: python:3.9-alpine
     before_script:
         - apk add musl-dev gcc
         - pip3 install pipenv
         - pipenv install
-
-typecheck:
-    stage: test
     script:
         - pipenv run mypy ctfkit
 
 unittest:
     stage: test
+    image: python:3.9-alpine
     before_script:
-        - apk add nodejs git musl-dev gcc
+        - apk add musl-dev gcc nodejs git
         - pip3 install pipenv
+        - pipenv install
     script:
         - pipenv run python3 -m unittest discover tests -b
 
 pylint:
     stage: test
     allow_failure: true
+    image: python:3.9-alpine
+    before_script:
+        - apk add musl-dev gcc
+        - pip3 install pipenv
+        - pipenv install
     script:
-        - pipenv run python3 -m pylint
-            --exit-zero
-            --output-format=pylint_gitlab.GitlabCodeClimateReporter
-            ctfkit > codeclimate.json
+        - pipenv run python3 -m pylint --exit-zero --output-format=pylint_gitlab.GitlabCodeClimateReporter ctfkit > codeclimate.json
     artifacts:
         reports:
             codequality: codeclimate.json
