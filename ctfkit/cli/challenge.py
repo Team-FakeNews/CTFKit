@@ -2,6 +2,7 @@ import click
 import docker
 from yaspin import yaspin
 import ctfkit.utility
+import os
 import validators  # type: ignore
 from . import create_challenge
 
@@ -41,11 +42,6 @@ def cli() -> None:
     pass
 
 
-@cli.command('init')
-def init():
-    pass
-
-
 @cli.command('run')
 @click.argument('challenge', required=True)
 def run(challenge: str) -> None:
@@ -66,7 +62,7 @@ def run(challenge: str) -> None:
     except:
         print("\n❌ Error, please check that Docker is installed and that your user has the proper rights to run it.")
     # Build the docker image
-    tmp_challenge_path = ctfkit.utility.get_current_path()+"/"+challenge
+    tmp_challenge_path = os.path.join(ctfkit.utility.get_current_path(), challenge)
     image_name = f"ctfkit:{challenge}"
     with yaspin(text=f"Starting challenge {challenge}", color="cyan") as sp:
         try:
