@@ -4,12 +4,22 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-validators = "*"
 click = "*"
+GitPython = "*"
 trafaret = "*"
 trafaret-config = "*"
 docker = "*"
+validators = "*"
+cdktf = "*"
+cdktf-cdktf-provider-google = "*"
+python-slugify = "*"
+marshmallow-dataclass = "*"
+marshmallow-enum = "*"
 yaspin = "*"
+mypy = "*"
+pylint-gitlab = "*"
+pylint-enums = "*"
+strictyaml = "*"
 
 [dev-packages]
 

@@ -12,7 +12,7 @@ This branch should be using :
 * RST format
 * In the docs/ directory
 
-### Run CTFKit
+### How to use (dev)
 * `pipenv shell`
 * `pipenv install`
 * `pip install -e .`

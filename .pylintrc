@@ -1,0 +1,3 @@
+[MASTER]
+load-plugins=pylint_enums
+disable=C0114,
