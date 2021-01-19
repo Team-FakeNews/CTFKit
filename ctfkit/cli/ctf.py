@@ -52,7 +52,7 @@ def plan(config: CtfConfig, environment: str):
 
     # Declare out terraform stack
     app = App(outdir=getcwd() + '/.tfout')
-    stack = CtfStack(app, deployment_config.environment.value)
+    stack = CtfStack(app, deployment_config.environment)
 
     if deployment_config.provider == HostingProvider.GCP:
         # Declare a GCP cluster while passing its configuration
@@ -61,3 +61,19 @@ def plan(config: CtfConfig, environment: str):
     with yaspin(Spinners.dots12, text="Generating infrastructure configuration ...") as spinner:
         app.synth()
         spinner.ok("✅ ")
+    
+    with yaspin(Spinners.dots12, text="Downloading modules ...") as spinner:
+        result = stack.init()
+        if len(result[1]) > 0:
+            spinner.fail(f"💥 {str(result[1])}")
+        else:
+            spinner.ok("✅ ")
+        
+    with yaspin(Spinners.dots12, text="Planning infrastructure ...") as spinner:
+        result = stack.plan()
+        if len(result[1]) > 0:
+            spinner.fail("💥 ")
+            spinner.stop()
+            print(result[1])
+        else:
+            spinner.ok("✅ ")
