@@ -1,6 +1,6 @@
 import click
-import docker
-from yaspin import yaspin
+import docker  # type: ignore
+from yaspin import yaspin  # type: ignore
 import ctfkit.utility
 import os
 import validators  # type: ignore
