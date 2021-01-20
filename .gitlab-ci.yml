@@ -13,15 +13,27 @@ sast:
     stage: test
 
 
-typecheck:
-    stage: test
-    image: python:3.9-alpine
+cache:
+    key:
+        files:
+            - Pipfile.lock
+    paths:
+        - .pipenv
+
+
+default:
+    image: python:3.8-alpine
     before_script:
         - apk add musl-dev gcc
         - pip3 install pipenv
         - pipenv install
+
+
+typecheck:
+    stage: test
     script:
         - pipenv run mypy ctfkit
+
 
 unittest:
     stage: test
@@ -31,7 +43,12 @@ unittest:
         - pip3 install pipenv
         - pipenv install
     script:
-        - pipenv run python3 -m unittest discover tests
+        - pipenv run coverage -m unittest discover tests -b
+        - pipenv run coverage xml
+    artifacts:
+        reports:
+            cobertura: coverage/cobertura-coverage.xml
+
 
 pylint:
     stage: test
