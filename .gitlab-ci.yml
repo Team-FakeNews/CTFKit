@@ -13,12 +13,12 @@ sast:
     stage: test
 
 
-cache:
-    key:
-        files:
-            - Pipfile.lock
-    paths:
-        - .pipenv
+# cache:
+#     key:
+#         files:
+#             - Pipfile.lock
+#     paths:
+        # - .pipenv
 
 
 default:
