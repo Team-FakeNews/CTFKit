@@ -47,7 +47,7 @@ unittest:
         - pipenv run python3 -m coverage xml
     artifacts:
         reports:
-            cobertura: coverage/cobertura-coverage.xml
+            cobertura: coverage.xml
 
 
 pylint:
