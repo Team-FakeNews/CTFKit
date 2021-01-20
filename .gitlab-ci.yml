@@ -43,7 +43,7 @@ unittest:
         - pip3 install pipenv
         - pipenv install
     script:
-        - pipenv run coverage -m unittest discover tests -b
+        - pipenv run python3 -m coverage run -m unittest discover tests -b
         - pipenv run coverage xml
     artifacts:
         reports:
