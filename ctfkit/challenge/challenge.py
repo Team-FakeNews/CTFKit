@@ -15,7 +15,9 @@ class Challenge:
     :param category: 
     """
 
-    def __init__(self, name: str, description: str, points: int, category: str, author: str, has_files: bool, has_container: bool, files=None, ports=None) -> None:
+    def __init__(self, name: str, description: str, points: int, category: str,
+    author: str, has_files: bool, has_container: bool, files=None, ports=None
+    ) -> None:
         """Constructor method
         """
         self.name = name
@@ -35,28 +37,30 @@ class Challenge:
 
     @staticmethod
     def from_yaml(file: str) -> Challenge:
-        """Returns a Challenge object by parsing a given yaml config file using a ConfigLoader. If the file is not valid, returns None
-        You can find a challenge.yml example file at `/example/challenge/01-test/`
+        """Returns a Challenge object by parsing a given yaml config file using
+        a ConfigLoader. If the file is not valid, returns None
+        You can find a challenge.yml example file at
+        `/example/challenge/01-test/`
 
         :param file: The path to the yaml config file for a challenge
         :type file: str
-        :return: The Challenge object corresponding to the config file, or None if the file is not valid
+        :return: The Challenge object corresponding to the config file, or None
+        if the file is not valid
         :rtype: Challenge or None
         """
 
-        try:
-            # We parse the given file
-            c = ConfigLoader(ChallengeConfig).convert(file)
-            # Detect if extra files are used for the challenge
-            has_files = len(c.files) > 0
-            # Detect if challenge needs to be runned in a container
-            has_container = len(c.container) > 0
-            ports = None
-            # Assign the given ports for the challenge object
-            if has_container:
-                ports = c.container
-                
-            return Challenge(c.name, c.description, c.points, c.category, c.author, has_files, has_container, files=c.files, ports=ports)
-        except Exception as e:
-            print(e)
-            return None
+        # We parse the given file
+        chall = ConfigLoader(ChallengeConfig).convert(file)
+        # Detect if extra files are used for the challenge
+        has_files = len(chall.files) > 0
+        # Detect if challenge needs to be runned in a container
+        has_container = len(chall.container) > 0
+        ports = None
+        # Assign the given ports for the challenge object
+        if has_container:
+            ports = chall.container
+            
+        return Challenge(chall.name, chall.description, chall.points,
+        chall.category, chall.author, has_files, has_container,
+        files=chall.files, ports=ports)
+        

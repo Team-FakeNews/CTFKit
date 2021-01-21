@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
-from pprint import pformat, pprint
-from typing import Dict, List, Optional
+from pprint import pformat
+from typing import List
 
 
 @dataclass
@@ -19,7 +19,8 @@ class PortConfig:
 
 @dataclass
 class ChallengeConfig:
-    """Will be used to convert a YAML config file to an object we can manipulate using the `Challenge` class using `utility.ConfigLoader`
+    """Will be used to convert a YAML config file to an object we can
+    manipulate using the `Challenge` class using `utility.ConfigLoader`
     """
 
     name: str

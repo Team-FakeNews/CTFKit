@@ -9,7 +9,8 @@ challenge_2/
     # Actual directory of the CTF
     ctf/
         ctf.yml # The CTF's configuration
-        # Will contain all the challenges decalred in the config file once the CTF is started
+        # Will contain all the challenges decalred in the config file once the
+        # CTF is started
         challenges/
 """
 
@@ -20,7 +21,8 @@ from ctfkit.utility import *
 
 def new_challenge(name: str) -> None:
     """Create a new challenge git repo for CTF Kit
-    Each challenge is a git repo in the `your_project/dev/` directory, which CTF kit will use to update your challenges
+    Each challenge is a git repo in the `your_project/dev/` directory, which
+    CTF Kit will use to update your challenges
     TODO: write content of challenge.yml on creation
 
     :param name: The name of the challenge
@@ -39,7 +41,8 @@ def new_challenge(name: str) -> None:
     """One challenge will be like so:
 
     /challenge_name/
-        files/              # files for a challenge (image, text file given to players)
+        files/              # files for a challenge (image, text file given to
+                            # players)
         src/                # source code of challenge
         challenge.yml       # config file for the challenge
         flag                # text file containing the flag
@@ -48,7 +51,8 @@ def new_challenge(name: str) -> None:
     """
     # We initiate the challenge's directory with default files
     default_dirs = ["files", "src"]
-    default_files = ["challenge.yml", "flag", "Dockerfile", "docker-compose.yml"]
+    default_files = ["challenge.yml", "flag", "Dockerfile",
+    "docker-compose.yml"]
 
     # Create all directories with .gitignore files to preserve them with commit
     for x in default_dirs:
