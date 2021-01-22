@@ -31,7 +31,7 @@ unittest:
         - pip3 install pipenv
         - pipenv install
     script:
-        - pipenv run python3 -m unittest discover tests -b
+        - pipenv run python3 -m unittest discover tests
 
 pylint:
     stage: test
