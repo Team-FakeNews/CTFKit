@@ -13,22 +13,6 @@ sast:
     stage: test
 
 
-# cache:
-#     key:
-#         files:
-#             - Pipfile.lock
-#     paths:
-        # - .pipenv
-
-
-default:
-    image: python:3.8-alpine
-    before_script:
-        - apk add musl-dev gcc
-        - pip3 install pipenv
-        - pipenv install
-
-
 typecheck:
     stage: test
     script:
