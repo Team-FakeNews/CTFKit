@@ -31,19 +31,19 @@ class CtfDeployment(App):
         CtfStack(self, config, environment)
 
     def init(self) -> Tuple[str, str]:
-        process = Popen(['terraform', 'init'], cwd=getcwd() + self.outdir, stderr=PIPE, stdout=PIPE, universal_newlines=True)
+        process = Popen(['terraform', 'init'], cwd=self.outdir, stderr=PIPE, stdout=PIPE, universal_newlines=True)
         return process.communicate()
 
     def plan(self) -> Tuple[str, str]:
-        process = Popen(['bash', '-c', 'terraform plan'], cwd=getcwd() + self.outdir, stderr=PIPE, stdout=PIPE, universal_newlines=True)
+        process = Popen(['bash', '-c', 'terraform plan'], cwd=self.outdir, stderr=PIPE, stdout=PIPE, universal_newlines=True)
         return process.communicate()
 
     def apply(self) -> Optional[IO[str]]:
-        process = Popen(['bash', '-c', 'terraform apply -auto-approve'], cwd=getcwd() + self.outdir, stderr=PIPE, stdout=PIPE, universal_newlines=True)
+        process = Popen(['bash', '-c', 'terraform apply -auto-approve'], cwd=self.outdir, stderr=PIPE, stdout=PIPE, universal_newlines=True)
         return process.stdout
 
     def destroy(self) -> Optional[IO[str]]:
-        process = Popen(['bash', '-c', 'terraform destroy -auto-approve'], cwd=getcwd() + self.outdir, stderr=PIPE, stdout=PIPE, universal_newlines=True)
+        process = Popen(['bash', '-c', 'terraform destroy -auto-approve'], cwd=self.outdir, stderr=PIPE, stdout=PIPE, universal_newlines=True)
         return process.stdout
 
 

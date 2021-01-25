@@ -1,14 +1,12 @@
 from os import getcwd
 from re import findall
 
-from cdktf import App
 import click
 from click.core import Context
-from click.exceptions import BadParameter
 from yaspin import yaspin  # type: ignore
 from yaspin.spinners import Spinners  # type: ignore
 
-from ctfkit.models import CtfConfig, DeploymentConfig, HostingEnvironment
+from ctfkit.models import CtfConfig, HostingEnvironment
 from ctfkit.utility import ConfigLoader
 from ctfkit.terraform import CtfDeployment
 
@@ -52,6 +50,8 @@ def plan(config: CtfConfig, environment: str):
 
     helpers = TfHelpers(app)
 
+    helpers.synth()
+    helpers.init()
     helpers.plan()
 
 
