@@ -15,6 +15,11 @@ sast:
 
 typecheck:
     stage: test
+    image: python:3.9-alpine
+    before_script:
+        - apk add musl-dev gcc nodejs git
+        - pip3 install pipenv
+        - pipenv install
     script:
         - pipenv run mypy ctfkit
 
