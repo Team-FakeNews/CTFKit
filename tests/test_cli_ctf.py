@@ -1,5 +1,5 @@
 from os import path
-from unittest import TestCase
+from unittest import TestCase, main
 
 from click.testing import CliRunner
 
@@ -10,7 +10,7 @@ from ctfkit.cli import root_cli
 class TestCliCtf(TestCase):
     runner = CliRunner()
 
-    VALID_CONFIG="""kind: ctf
+    VALID_CONFIG = """kind: ctf
 name: fakectf
 challenges:
     - ./challs/01-test
@@ -25,8 +25,13 @@ deployments:
                 config.write(self.VALID_CONFIG)
                 config.close()
 
+            with open('credentials.json', 'w') as credentials:
+                credentials.write('{}')
+
             result = self.runner.invoke(root_cli, ['ctf', 'plan', 'testing'])
             self.assertEqual(result.exit_code, 1)
 
             self.assertTrue(path.exists('.tfout'))
 
+if __name__ == '__main__':
+    main()
