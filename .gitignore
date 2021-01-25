@@ -1,6 +1,7 @@
 .vscode
 *.egg-info
 __pycache__
+*.pyc
 .mypy_cache
 .coverage
 coverage.xml
