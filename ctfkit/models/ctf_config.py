@@ -1,5 +1,5 @@
 from pprint import pformat
-from typing import List
+from typing import List, Optional
 from dataclasses import dataclass, field
 from click.exceptions import BadParameter
 
@@ -45,7 +45,7 @@ class DeploymentConfig:
     provider: HostingProvider = field(
         default=None, metadata={"by_value": True})  # type: ignore
     cluster: ClusterConfig = ClusterConfig()
-    gcp: GcpAuthConfig = None
+    gcp: Optional[GcpAuthConfig] = None
 
     def __repr__(self) -> str:
         return pformat(vars(self), indent=4)

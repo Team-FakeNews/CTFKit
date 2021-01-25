@@ -50,26 +50,9 @@ def plan(config: CtfConfig, environment: str):
     # Declare out terraform stack
     app = CtfDeployment(config, environment_e, outdir=getcwd() + '/.tfout')
 
-    with yaspin(Spinners.dots12, text="Generating infrastructure configuration ...") as spinner:
-        app.synth()
-        spinner.ok("✅ ")
+    helpers = TfHelpers(app)
 
-    with yaspin(Spinners.dots12, text="Downloading modules ...") as spinner:
-        result = app.init()
-        if len(result[1]) > 0:
-            spinner.fail(f"💥 {str(result[1])}")
-        else:
-            spinner.ok("✅ ")
-
-    with yaspin(Spinners.dots12, text="Planning infrastructure ...") as spinner:
-        result = app.plan()
-        if len(result[1]) > 0:
-            spinner.fail("💥 ")
-            print(result[1])
-
-        else:
-            spinner.ok("✅ ")
-            print('\n'.join(findall(r'(.+resource "[^"]+" "[^"]+") \{', result[0])))
+    helpers.plan()
 
 
 @cli.command('deploy')
@@ -82,34 +65,17 @@ def deploy(config: CtfConfig, environment: str):
     from the ctf configuration and deploy required changes
     """
 
+    # Find the requested environment
     environment_e = next(
         elem for elem in HostingEnvironment if elem.value == environment)
 
     # Declare out terraform stack
     app = CtfDeployment(config, environment_e, outdir=getcwd() + '/.tfout')
+    helpers = TfHelpers(app)
 
-    with yaspin(Spinners.dots12, text="Generating infrastructure configuration ...") as spinner:
-        app.synth()
-        spinner.ok("✅ ")
-
-    with yaspin(Spinners.dots12, text="Downloading modules ...") as spinner:
-        result = app.init()
-        if len(result[1]) > 0:
-            spinner.fail(f"💥 {str(result[1])}")
-        else:
-            spinner.ok("✅ ")
-
-    with yaspin(Spinners.dots12) as spinner:
-        for line in app.apply():
-            if line != '':
-                spinner.text = "Deploying infrastructure ... " + line.strip('\n')
-        # if len(result[1]) > 0:
-        #     spinner.fail("💥 ")
-        #     print(result[1])
-
-        # else:
-        spinner.ok("✅ ")
-        #     print('\n'.join(findall(r'(.+resource "[^"]+" "[^"]+") \{', result[0])))
+    helpers.synth()
+    helpers.init()
+    helpers.deploy()
 
 
 @cli.command('destroy')
@@ -122,31 +88,87 @@ def destroy(config: CtfConfig, environment: str):
     from the ctf configuration and deploy required changes
     """
 
+    # Find the requested environment
     environment_e = next(
         elem for elem in HostingEnvironment if elem.value == environment)
 
-    # Declare out terraform stack
     app = CtfDeployment(config, environment_e, outdir=getcwd() + '/.tfout')
 
-    with yaspin(Spinners.dots12, text="Generating infrastructure configuration ...") as spinner:
-        app.synth()
-        spinner.ok("✅ ")
+    helpers = TfHelpers(app)
 
-    with yaspin(Spinners.dots12, text="Downloading modules ...") as spinner:
-        result = app.init()
-        if len(result[1]) > 0:
-            spinner.fail(f"💥 {str(result[1])}")
-        else:
+    helpers.synth()
+    helpers.init()
+    helpers.destroy()
+
+
+class TfHelpers:
+    """
+    Infrastructure related helpers
+    """
+
+    infra: CtfDeployment
+
+    def __init__(self, infra: CtfDeployment) -> None:
+        self.infra = infra
+
+    def init(self) -> None:
+        """
+        Wrap call to terraform init with a spinner
+        """
+
+        with yaspin(Spinners.dots12, text="Downloading modules ...") as spinner:
+            _, stderr = self.infra.init()
+
+            if len(stderr) > 0:
+                spinner.fail(f"💥 {stderr}")
+            else:
+                spinner.ok("✅ ")
+
+    def synth(self) -> None:
+        """
+        Wrap call to terraformcdk synth() method while showing a spinner
+        """
+        with yaspin(Spinners.dots12, text="Generating infrastructure configuration ...") as spinner:
+            self.infra.synth()
             spinner.ok("✅ ")
 
-    with yaspin(Spinners.dots12) as spinner:
-        for line in app.destroy():
-            if line != '':
-                spinner.text = "Destroying infrastructure ... " + line.strip('\n')
-        # if len(result[1]) > 0:
-        #     spinner.fail("💥 ")
-        #     print(result[1])
+    def plan(self) -> None:
+        """
+        Wrap call to terraform plan and show result on spinner
+        """
 
-        # else:
-        spinner.ok("✅ ")
-        #     print('\n'.join(findall(r'(.+resource "[^"]+" "[^"]+") \{', result[0])))
+        with yaspin(Spinners.dots12, text="Planning infrastructure ...") as spinner:
+            result = self.infra.plan()
+            if len(result[1]) > 0:
+                spinner.fail("💥 ")
+                print(result[1])
+
+            else:
+                spinner.ok("✅ ")
+                print('\n'.join(findall(r'(.+resource "[^"]+" "[^"]+") \{', result[0])))
+
+    def deploy(self) -> None:
+        """
+        Wrap call to terraform apply while showing stdout on a spinner
+        """
+
+        with yaspin(Spinners.dots12, text='Deploying infrastructure ... ') as spinner:
+            stdout = self.infra.apply()
+            if stdout is not None:
+                for line in stdout:
+                    if line != '':
+                        spinner.text = "Deploying infrastructure ... " + line.strip('\n')
+
+            spinner.ok("✅ ")
+
+    def destroy(self) -> None:
+        """
+        Wrap a call to terraform destroy while showing stdout on a spinner
+        """
+
+        with yaspin(Spinners.dots12) as spinner:
+            for line in self.infra.destroy():
+                if line != '':
+                    spinner.text = "Destroying infrastructure ... " + line.strip('\n')
+
+            spinner.ok("✅ ")
