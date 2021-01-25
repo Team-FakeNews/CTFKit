@@ -26,7 +26,7 @@ deployments:
                 config.close()
 
             result = self.runner.invoke(root_cli, ['ctf', 'plan', 'testing'])
-            self.assertEqual(result.exit_code, 0)
+            self.assertEqual(result.exit_code, 1)
 
             self.assertTrue(path.exists('.tfout'))
 
