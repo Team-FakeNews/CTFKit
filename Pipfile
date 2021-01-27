@@ -19,7 +19,6 @@ yaspin = "*"
 mypy = "*"
 pylint-gitlab = "*"
 pylint-enums = "*"
-strictyaml = "*"
 
 [dev-packages]
 

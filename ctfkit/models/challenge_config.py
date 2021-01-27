@@ -5,21 +5,20 @@ from typing import List
 
 @dataclass
 class PortConfig:
-    """Representing a port mapping for a challenge: protocol and number
-    """
+    """ Representing a port mapping for a challenge: protocol and number """
 
     proto: str
     port: int
 
     def __repr__(self):
-        """Repr method
-        """
+        """ Repr method """
         return pformat(vars(self))
 
 
 @dataclass
 class ChallengeConfig:
-    """Will be used to convert a YAML config file to an object we can
+    """
+    Will be used to convert a YAML config file to an object we can
     manipulate using the `Challenge` class using `utility.ConfigLoader`
     """
 
@@ -32,6 +31,13 @@ class ChallengeConfig:
     container: List[PortConfig] = field(default_factory=list)
 
     def __repr__(self) -> str:
-        """Repr method
-        """
+        """ Repr method """
         return pformat(vars(self))
+
+    def has_files(self) -> bool:
+        """ Check if a challenge uses external files """
+        return len(self.files) > 0
+
+    def has_container(self) -> bool:
+        """ Check if a challenge needs a container to run """
+        return len(self.container) > 0
