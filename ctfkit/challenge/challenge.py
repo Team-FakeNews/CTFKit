@@ -5,15 +5,19 @@ from ctfkit.models import ChallengeConfig
 
 
 class Challenge:
-    """ Handles Challenge objects to simplify data manipulation for challenges """
+    """
+    Handles Challenge objects to simplify data manipulation for challenges and
+    create challenges from a given config file
+    """
 
     def __init__(self, config: ChallengeConfig) -> None:
         """ Constructor method """
         self.config = config
 
-    def __str__(self) -> None:
+    def __str__(self) -> str:
         """ String method """
-        return f"""{self.config.name} - {self.config.points}pts ({self.config.author})"""
+        return (f"{self.config.name} - {self.config.points}pts"
+                f"({self.config.author})")
 
     @staticmethod
     def from_yaml(file: str) -> Challenge:
