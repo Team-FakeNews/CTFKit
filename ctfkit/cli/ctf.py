@@ -1,6 +1,6 @@
-from os import getcwd
+from os import getcwd, mkdir
 from cdktf import App
-import click
+import click, git
 from click.core import Context
 from click.exceptions import BadParameter
 from yaspin import yaspin  # type: ignore
@@ -16,13 +16,9 @@ pass_config = click.make_pass_decorator(CtfConfig)
 
 
 @click.group()
-@click.option("--config",
-              type=ConfigLoader(CtfConfig),
-              default="ctf.config.yml")
-@click.pass_context
-def cli(context: Context, config: CtfConfig):
+def cli():
     """CTF generation/handling commands"""
-    context.obj = config
+    pass
 
 
 @cli.command('init')
@@ -48,7 +44,10 @@ def init(ctf_name: str, provider: HostingProvider):
                 f"The directory of CTF {ctf_name} already exists"
             )
 
-    PROVIDERS = [h.value.lower() for h in HOSTING_PROVIDER]
+    PROVIDERS = [h.value.lower() for h in HostingProvider]
+    if provider is None:
+        provider = ""
+
     if provider.lower() in PROVIDERS:
         return click.BadParameter(
                 f"The provider must be one of them : {PROVIDERS}"
@@ -68,6 +67,9 @@ def init(ctf_name: str, provider: HostingProvider):
 @cli.command('plan')
 @click.argument('environment', required=True,
                 type=click.Choice(map(lambda e: e.value, HostingEnvironment)))
+@click.option("--config",
+              type=ConfigLoader(CtfConfig),
+              default="ctf.config.yml")
 @pass_config
 def plan(config: CtfConfig, environment: str):
     """Generate terraform configuration files
