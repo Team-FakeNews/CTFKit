@@ -21,7 +21,7 @@ deployments:
 
     def test_plan(self):
         with self.runner.isolated_filesystem():
-            with open('ctf.config.yaml', 'w') as config:
+            with open('ctf.config.yml', 'w') as config:
                 config.write(self.VALID_CONFIG)
                 config.close()
 

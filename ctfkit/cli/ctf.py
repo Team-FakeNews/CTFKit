@@ -18,10 +18,10 @@ pass_config = click.make_pass_decorator(CtfConfig)
 @click.group()
 @click.option("--config",
               type=ConfigLoader(CtfConfig),
-              default="ctf.config.yaml")
+              default="ctf.config.yml")
 @click.pass_context
 def cli(context: Context, config: CtfConfig):
-    """Root group for the ctf command"""
+    """CTF generation/handling commands"""
     context.obj = config
 
 
@@ -37,9 +37,9 @@ def init(ctf_name: str, provider: HostingProvider):
     :param provider: The provider which will host the CTF
     :type provider:
     """
-    CONFIG = "/config"
-    CHALLZ = "/challz"
-    README = "/README.md"
+    CONFIG: str = "/config"
+    CHALLZ: str = "/challz"
+    README: str = "/README.md"
 
     try:
         mkdir(ctf_name)
