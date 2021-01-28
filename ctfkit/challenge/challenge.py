@@ -10,6 +10,8 @@ class Challenge:
     create challenges from a given config file
     """
 
+    config: ChallengeConfig
+
     def __init__(self, config: ChallengeConfig) -> None:
         """ Constructor method """
         self.config = config
