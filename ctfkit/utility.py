@@ -1,5 +1,5 @@
-"""This file includes -- as the name says -- utility functions, such as conversions,
-path-related operations, common checks...
+"""This file includes -- as the name says -- utility functions, such as
+conversions, path-related operations, common checks...
 """
 
 import os
@@ -18,8 +18,9 @@ T = TypeVar('T')
 
 class ConfigLoader(Path, Generic[T]):
     """
-    Utility class to which parse, validate, and do marshmalling from a yaml file
-    to the specified model class. The model must have the @dataclass decorator.
+    Utility class to which parse, validate, and do marshmalling from a yaml
+    file to the specified model class. The model must have the @dataclass
+    decorator.
     The dataclass should carefully declare every attributes types which will
     allows to detemine the matching schema.
 
@@ -28,7 +29,8 @@ class ConfigLoader(Path, Generic[T]):
     base_cls: Type[T]
 
     def __init__(self, base_cls: Type[T]) -> None:
-        super().__init__(exists=True, file_okay=True, dir_okay=False, readable=True)
+        super().__init__(exists=True, file_okay=True, dir_okay=False,
+        readable=True)
 
         if not is_dataclass(base_cls):
             raise ValueError('The base_cls argument my be a dataclass')
@@ -41,11 +43,12 @@ class ConfigLoader(Path, Generic[T]):
             param: Optional[Parameter] = None,
             ctx: Optional[Context] = None) -> Any:
         """
-        Reads the specified yaml file, then validate its schema and marshamall each
-        value into a new instance of the previously provided class.
+        Reads the specified yaml file, then validate its schema and marshamall
+        each value into a new instance of the previously provided class.
 
         :param path: Path to the yaml file
-        :return: A new instance of the dataclass filled with attributes from the yaml file
+        :return: A new instance of the dataclass filled with attributes from
+        the yaml file
         """
         # Load raw config using the default implementation from click
         config_content: str = super().convert(value, param, ctx)
@@ -73,7 +76,8 @@ def get_current_path() -> str:
 
 
 def touch(file: str, data=None) -> None:
-    """Creates a file if it does not already exists, and write the content of `data` in it
+    """Creates a file if it does not already exists, and write the content of
+    `data` in it
 
     :param file: The file to create
     :type file: str
@@ -122,4 +126,5 @@ def check_installation() -> None:
     if is_challenges:
         print("Installation is complete! You can use CTF Kit correctly")
     else:
-        print("CTF Kit is not installed correctly, you may have to initiate ctfkit again")
+        print("CTF Kit is not installed correctly, you may have to initiate"
+        "ctfkit again")
