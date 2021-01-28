@@ -26,10 +26,43 @@ def cli(context: Context, config: CtfConfig):
 
 
 @cli.command('init')
-def init():
-    """Init command
-    TODO : Not implemented
+@click.option("-n", "--ctf-name", type=str, prompt=True)
+@click.option("--provider", type=click.Choice(map(lambda e: e.value, HostingEnvironment)))
+def init(ctf_name: str, provider: HostingProvider):
+    """Create the CTF repository in the current working directory
+
+    :param ctf_name: The ctf_name of the CTF
+    :type ctf_name: str
+
+    :param provider: The provider which will host the CTF
+    :type provider:
     """
+    CONFIG = "/config"
+    CHALLZ = "/challz"
+    README = "/README.md"
+
+    try:
+        mkdir(ctf_name)
+    except FileExistsError:
+        return click.BadParameter(
+                f"The directory of CTF {ctf_name} already exists"
+            )
+
+    PROVIDERS = [h.value.lower() for h in HOSTING_PROVIDER]
+    if provider.lower() in PROVIDERS:
+        return click.BadParameter(
+                f"The provider must be one of them : {PROVIDERS}"
+            )
+
+    while provider.lower() not in PROVIDERS:
+        provider = input(f"CTF provider (lowercase) {PROVIDERS} : ")
+
+    mkdir(ctf_name + CHALLZ)
+    mkdir(ctf_name + CONFIG)
+    git.Repo.init(ctf_name)
+
+    with open(ctf_name + README, 'r') as f:
+        f.write(f"# {ctf_name}\n")
 
 
 @cli.command('plan')
