@@ -1,7 +1,7 @@
 from os import getcwd, mkdir
 from cdktf import App
-import click, git
-from click.core import Context
+import click
+import git
 from click.exceptions import BadParameter
 from yaspin import yaspin  # type: ignore
 from yaspin.spinners import Spinners  # type: ignore
@@ -19,7 +19,6 @@ pass_config = click.make_pass_decorator(CtfConfig)
 def cli():
     """CTF generation/handling commands"""
     pass
-
 
 @cli.command('init')
 @click.option("-n", "--ctf-name", type=str, prompt=True)
@@ -42,7 +41,7 @@ def init(ctf_name: str, provider: HostingProvider):
     except FileExistsError:
         return click.BadParameter(
                 f"The directory of CTF {ctf_name} already exists"
-            )
+        )
 
     PROVIDERS = [h.value.lower() for h in HostingProvider]
     if provider is None:
@@ -51,7 +50,7 @@ def init(ctf_name: str, provider: HostingProvider):
     if provider.lower() in PROVIDERS:
         return click.BadParameter(
                 f"The provider must be one of them : {PROVIDERS}"
-            )
+        )
 
     while provider.lower() not in PROVIDERS:
         provider = input(f"CTF provider (lowercase) {PROVIDERS} : ")
