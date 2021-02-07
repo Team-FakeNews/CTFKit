@@ -1,5 +1,3 @@
-from os import getcwd
-from os.path import join
 from ctfkit.terraform.gcp import GcpGKE
 from ctfkit.models.hosting_provider import HostingProvider
 from ctfkit.models.ctf_config import CtfConfig, DeploymentConfig, GcpAuthConfig
@@ -9,6 +7,7 @@ from typing import IO, List, Any, Mapping, Optional, Tuple
 from constructs import Construct
 from cdktf import App, TerraformStack
 from cdktf_cdktf_provider_google import GoogleProvider
+from cdktf_cdktf_provider_kubernetes import KubernetesProvider
 
 from ctfkit.models import HostingEnvironment
 
@@ -31,19 +30,59 @@ class CtfDeployment(App):
         CtfStack(self, config, environment)
 
     def init(self) -> Tuple[str, str]:
-        process = Popen(['terraform', 'init'], cwd=self.outdir, stderr=PIPE, stdout=PIPE, universal_newlines=True)
+        """
+        Wrap the execution of the terraform init command
+        """
+        process = Popen(
+            ['terraform', 'init'],
+            cwd=self.outdir,
+            stderr=PIPE,
+            stdout=PIPE,
+            universal_newlines=True
+        )
         return process.communicate()
 
     def plan(self) -> Tuple[str, str]:
-        process = Popen(['terraform', 'plan'], cwd=self.outdir, stderr=PIPE, stdout=PIPE, universal_newlines=True)
+        """
+        Wrap the execution of the terraform plan command
+        """
+        process = Popen(
+            ['terraform', 'plan'],
+            cwd=self.outdir,
+            stderr=PIPE,
+            stdout=PIPE,
+            universal_newlines=True
+        )
         return process.communicate()
 
-    def apply(self) -> Optional[IO[str]]:
-        process = Popen(['terraform', 'apply', '-auto-approve'], cwd=self.outdir, stderr=PIPE, stdout=PIPE, universal_newlines=True)
+    def apply(self) -> IO[str]:
+        """
+        Wrap the execution of the terraform apply command
+        """
+        process = Popen(
+            ['terraform', 'apply', '-auto-approve'],
+            cwd=self.outdir,
+            stderr=PIPE,
+            stdout=PIPE,
+            universal_newlines=True
+        )
+        assert process.stdout is not None
+        
         return process.stdout
 
-    def destroy(self) -> Optional[IO[str]]:
-        process = Popen(['terraform', 'destroy', '-auto-approve'], cwd=self.outdir, stderr=PIPE, stdout=PIPE, universal_newlines=True)
+    def destroy(self) -> IO[str]:
+        """
+        Wrap the execution of the terraform destroy command
+        """
+        process = Popen(
+            ['terraform', 'destroy', '-auto-approve'],
+            cwd=self.outdir,
+            stderr=PIPE,
+            stdout=PIPE,
+            universal_newlines=True
+        )
+        assert process.stdout is not None
+        
         return process.stdout
 
 
@@ -71,7 +110,7 @@ class CtfStack(TerraformStack):
         """
         if self.deployment_config.gcp is None:
             raise TypeError('gcp config should not be empty')
-            
+
         with open(self.deployment_config.gcp.credentials_file, 'r') as credentials:
             GoogleProvider(
                 self,
@@ -82,5 +121,12 @@ class CtfStack(TerraformStack):
                 zone=self.deployment_config.gcp.zone
             )
 
+        cluster = GcpGKE(self, 'k8s_cluster', self.deployment_config.cluster)
 
-        GcpGKE(self, 'k8s_cluster', self.deployment_config.cluster)
+        # KubernetesProvider(
+        #     self,
+        #     'k8s_provider',
+        #     username=cluster.username,
+        #     password=
+        # )
+        

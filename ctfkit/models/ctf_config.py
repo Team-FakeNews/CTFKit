@@ -1,12 +1,15 @@
+from os.path import join
 from pprint import pformat
-from typing import List, Optional
+from typing import Iterable, List, Optional
 from dataclasses import dataclass, field
 from click.exceptions import BadParameter
 
 from slugify import slugify
 
+from ctfkit.challenge import Challenge
 from .hosting_environment import HostingEnvironment
 from .hosting_provider import HostingProvider
+from .challenge_config import ChallengeConfig
 
 
 @dataclass
@@ -60,8 +63,26 @@ class CtfConfig():
     """
     kind: str
     name: str
-    challenges: List[str] = field(default_factory=list)
     deployments: List[DeploymentConfig] = field(default_factory=list)
+    challenges: List[str] = field(default_factory=list)
+
+    # def __post_init__(self):
+    #     self.challenges = list(map(
+    #         lambda path: ConfigLoader(ChallengeConfig).convert(join(path, 'challenge.yml')),
+    #         self.challenges_name
+    #     ))
+
+    def get_challenges_config(self) -> Iterable[ChallengeConfig]:
+        """"
+        Loads challenge configurations from the disk
+        Only challenges listed in the ctf.config.yaml are listed
+
+        :return: An iterator with every configuration
+        """
+        return map(
+            lambda path: Challenge.from_yaml(join(path, 'challenge.yml')).config,
+            self.challenges
+        )
 
     def get_slug(self) -> str:
         """

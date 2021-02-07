@@ -22,8 +22,10 @@ pylint-enums = "*"
 strictyaml = "*"
 coverage = "*"
 cdktf-cdktf-provider-azurerm = "*"
+cdktf-cdktf-provider-kubernetes = "*"
 
 [dev-packages]
+pylint = "*"
 
 [requires]
 python_version = "3"
