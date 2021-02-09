@@ -1,3 +1,5 @@
+from sys import exit
+
 from ctfkit.terraform.gcp import GcpGKE
 from ctfkit.models.hosting_provider import HostingProvider
 from ctfkit.models.ctf_config import CtfConfig, DeploymentConfig, GcpAuthConfig
@@ -111,22 +113,19 @@ class CtfStack(TerraformStack):
         if self.deployment_config.gcp is None:
             raise TypeError('gcp config should not be empty')
 
-        with open(self.deployment_config.gcp.credentials_file, 'r') as credentials:
-            GoogleProvider(
-                self,
-                'gcp',
-                credentials=credentials.read(),
-                project=self.deployment_config.gcp.project,
-                region=self.deployment_config.gcp.region,
-                zone=self.deployment_config.gcp.zone
-            )
+        try:
+            with open(self.deployment_config.gcp.credentials_file, 'r') as credentials:
+                GoogleProvider(
+                    self,
+                    'gcp',
+                    credentials=credentials.read(),
+                    project=self.deployment_config.gcp.project,
+                    region=self.deployment_config.gcp.region,
+                    zone=self.deployment_config.gcp.zone
+                )
+
+        except FileNotFoundError:
+            print(f'ERROR: You are missing a {self.deployment_config.gcp.credentials_file} to authenticate with GCP')
+            exit(1)
 
         cluster = GcpGKE(self, 'k8s_cluster', self.deployment_config.cluster)
-
-        # KubernetesProvider(
-        #     self,
-        #     'k8s_provider',
-        #     username=cluster.username,
-        #     password=
-        # )
-        
