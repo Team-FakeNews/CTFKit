@@ -1,5 +1,5 @@
 from cdktf import Resource
-from cdktf_cdktf_provider_kubernetes import Deployment, DeploymentMetadata, DeploymentSpec, DeploymentSpecSelector, DeploymentSpecTemplate, DeploymentSpecTemplateMetadata, DeploymentSpecTemplateSpec, DeploymentSpecTemplateSpecContainer, DeploymentSpecTemplateSpecContainerPort
+from cdktf_cdktf_provider_kubernetes import Deployment,DeploymentMetadata, DeploymentSpec, DeploymentSpecSelector, DeploymentSpecTemplate, DeploymentSpecTemplateMetadata, DeploymentSpecTemplateSpec, DeploymentSpecTemplateSpecContainer, DeploymentSpecTemplateSpecContainerPort
 from constructs import Construct
 
 from ctfkit.models import ChallengeConfig
@@ -7,6 +7,9 @@ from ctfkit.models import ChallengeConfig
 
 
 class ChallengeDeployment(Resource):
+    """
+    Create a kubernetes deployment for the provided challenge
+    """
 
     def __init__(self, scope: Construct, challenge_config: ChallengeConfig) -> None:
         super().__init__(scope, challenge_config.slug)

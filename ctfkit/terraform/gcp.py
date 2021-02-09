@@ -1,8 +1,8 @@
-from ctfkit.models.ctf_config import ClusterConfig
 from constructs import Construct
 from cdktf import Resource, TerraformOutput
 from cdktf_cdktf_provider_google import ContainerCluster
 
+from ctfkit.models.ctf_config import ClusterConfig
 from ctfkit.models import CtfConfig, DeploymentConfig
 
 
@@ -30,6 +30,9 @@ class GcpGKE(Resource):
 
     @property
     def username(self):
+        """
+        Terraform output: Username to use to connect to the kubernetes endpoint
+        """
         return TerraformOutput(
             self,
             'username',
@@ -39,6 +42,9 @@ class GcpGKE(Resource):
 
     @property
     def password(self):
+        """
+        Terraform output: Password to use to connect to the kubernetes endpoint
+        """
         return TerraformOutput(
             self,
             'password',
@@ -48,6 +54,9 @@ class GcpGKE(Resource):
 
     @property
     def endpoint(self):
+        """
+        Terraform output: Endpoint of the kubernetes API
+        """
         return TerraformOutput(
             self,
             'endpoint',

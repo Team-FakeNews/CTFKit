@@ -1,10 +1,14 @@
 import click
+
 from . import ctf, challenge
 
 
 @click.group()
 def root_cli():
-    pass
+    """
+    Main cli which container all sub-commands
+    It doesn't do anything but showing help to the user
+    """
 
 
 root_cli.add_command(ctf.cli, 'ctf')

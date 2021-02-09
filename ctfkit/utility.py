@@ -13,10 +13,12 @@ from marshmallow_dataclass import class_schema
 from yaml import load
 from yaml.loader import SafeLoader
 
-T = TypeVar('T')
 
 
-class ConfigLoader(Path, Generic[T]):
+ClassType = TypeVar('ClassType')
+
+
+class ConfigLoader(Path, Generic[ClassType]):
     """
     Utility class to which parse, validate, and do marshmalling from a yaml
     file to the specified model class. The model must have the @dataclass
@@ -26,11 +28,10 @@ class ConfigLoader(Path, Generic[T]):
 
     :param base_cls: The dataclass which represent the yaml config to import
     """
-    base_cls: Type[T]
+    base_cls: Type[ClassType]
 
-    def __init__(self, base_cls: Type[T]) -> None:
-        super().__init__(exists=True, file_okay=True, dir_okay=False,
-        readable=True)
+    def __init__(self, base_cls: Type[ClassType]) -> None:
+        super().__init__(exists=True, file_okay=True, dir_okay=False, readable=True)
 
         if not is_dataclass(base_cls):
             raise ValueError('The base_cls argument my be a dataclass')
@@ -87,27 +88,27 @@ def touch(file: str, data=None) -> None:
     if os.path.exists(file):
         print(f"File {file} already exists")
     else:
-        f = open(file, "w")
+        file = open(file, "w")
         # If data has been specified
         if data:
-            f.write(data)
+            file.write(data)
 
-        f.close()
+        file.close()
 
 
-def mkdir(dir: str) -> None:
+def mkdir(directory: str) -> None:
     """Creates a directory if it does not already exists
 
     :param dir: The directory to create
     :type dir: str
     """
-    if os.path.exists(dir) and os.path.isdir(dir):
-        print(f"Directory {dir} already exists")
+    if os.path.exists(directory) and os.path.isdir(directory):
+        print(f"Directory {directory} already exists")
     else:
         try:
-            os.mkdir(dir)
-        except OSError as e:
-            print(e)
+            os.mkdir(directory)
+        except OSError as error:
+            print(error)
 
 
 def check_installation() -> None:
@@ -126,5 +127,4 @@ def check_installation() -> None:
     if is_challenges:
         print("Installation is complete! You can use CTF Kit correctly")
     else:
-        print("CTF Kit is not installed correctly, you may have to initiate"
-        "ctfkit again")
+        print("CTF Kit is not installed correctly, you may have to initiate ctfkit again")

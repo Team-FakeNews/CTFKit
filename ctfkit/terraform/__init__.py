@@ -1,8 +1,4 @@
-from sys import exit
-
-from ctfkit.terraform.gcp import GcpGKE
-from ctfkit.models.hosting_provider import HostingProvider
-from ctfkit.models.ctf_config import CtfConfig, DeploymentConfig, GcpAuthConfig
+import sys
 from subprocess import PIPE, Popen
 from typing import IO, List, Any, Mapping, Optional, Tuple
 
@@ -11,11 +7,17 @@ from cdktf import App, TerraformStack
 from cdktf_cdktf_provider_google import GoogleProvider
 from cdktf_cdktf_provider_kubernetes import KubernetesProvider
 
+from ctfkit.terraform.gcp import GcpGKE
+from ctfkit.models.hosting_provider import HostingProvider
+from ctfkit.models.ctf_config import CtfConfig, DeploymentConfig, GcpAuthConfig
 from ctfkit.models import HostingEnvironment
 
 
-
 class CtfDeployment(App):
+    """
+    Root application module which deploy the entire CTF infrastructure
+    The infrastructure is build dynamically using the configuration provided by the user
+    """
 
     config: CtfConfig
     deployment_config: DeploymentConfig
@@ -69,7 +71,7 @@ class CtfDeployment(App):
             universal_newlines=True
         )
         assert process.stdout is not None
-        
+
         return process.stdout
 
     def destroy(self) -> IO[str]:
@@ -84,7 +86,7 @@ class CtfDeployment(App):
             universal_newlines=True
         )
         assert process.stdout is not None
-        
+
         return process.stdout
 
 
@@ -93,6 +95,7 @@ class CtfStack(TerraformStack):
     Root terraform stack which should contains every ressources
     needed to build up an infrastructure
     """
+
     def __init__(
             self,
             scope: Construct,
@@ -125,7 +128,8 @@ class CtfStack(TerraformStack):
                 )
 
         except FileNotFoundError:
-            print(f'ERROR: You are missing a {self.deployment_config.gcp.credentials_file} to authenticate with GCP')
+            print(f'ERROR: You are missing a {self.deployment_config.gcp.credentials_file}'
+                  'to authenticate with GCP')
             exit(1)
 
-        cluster = GcpGKE(self, 'k8s_cluster', self.deployment_config.cluster)
+        GcpGKE(self, 'k8s_cluster', self.deployment_config.cluster)

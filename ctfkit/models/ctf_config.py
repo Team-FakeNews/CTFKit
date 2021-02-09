@@ -14,6 +14,9 @@ from .challenge_config import ChallengeConfig
 
 @dataclass
 class GcpAuthConfig:
+    """
+    Authentication option that the user can pass in a GCP deployment
+    """
     project: str
     region: str
     zone: str
@@ -100,7 +103,9 @@ class CtfConfig():
                 elem for elem in self.deployments if elem.environment == environment)
 
         except StopIteration:
-            raise BadParameter(f'No "{environment}" environment could be found in your configuration')
+            raise BadParameter(
+                f'No "{environment}" environment could be found in your configuration'
+            )
 
     def __repr__(self) -> str:
         return pformat(vars(self))
