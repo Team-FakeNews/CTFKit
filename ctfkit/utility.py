@@ -76,7 +76,7 @@ def get_current_path() -> str:
     return os.path.abspath(".")
 
 
-def touch(file: str, data=None) -> None:
+def touch(path: str, data=None) -> None:
     """Creates a file if it does not already exists, and write the content of
     `data` in it
 
@@ -85,10 +85,10 @@ def touch(file: str, data=None) -> None:
     :param data: The data to write into `file`
     :type data: str
     """
-    if os.path.exists(file):
-        print(f"File {file} already exists")
+    if os.path.exists(path):
+        print(f"File {path} already exists")
     else:
-        file = open(file, "w")
+        file = open(path, "w")
         # If data has been specified
         if data:
             file.write(data)
