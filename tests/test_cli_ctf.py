@@ -11,19 +11,22 @@ class TestCliCtf(TestCase):
     runner = CliRunner()
 
     VALID_CONFIG = """kind: ctf
+kind: ctf
 name: fakectf
-challenges:
-    - ./challs/01-test
 deployments:
-    - environment: testing
-      provider: gcp
+    -   environment: testing
+        provider: gcp
+        gcp:
+            project: fakectf
+            region: europe-west1
+            zone: europe-west1-b
 """
 
     GCP_CREDENTIALS = """{
     "type": "service_account",
     "project_id": "",
     "private_key_id": "",
-    "private_key": "-----BEGIN PRIVATE KEY----------END PRIVATE KEY-----\n",
+    "private_key": "-----BEGIN PRIVATE KEY----------END PRIVATE KEY-----\\n",
     "client_email": "",
     "client_id": "",
     "auth_uri": "https://accounts.google.com/o/oauth2/auth",
@@ -42,7 +45,7 @@ deployments:
                 credentials.write(self.GCP_CREDENTIALS)
 
             result = self.runner.invoke(root_cli, ['ctf', 'plan', 'testing'])
-            self.assertEqual(result.exit_code, 1)
+            self.assertEqual(result.exit_code, 0)
 
             self.assertTrue(path.exists('.tfout'))
 
