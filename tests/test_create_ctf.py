@@ -1,5 +1,6 @@
 import unittest
-from os.path import isdir, isfile, join, system
+from os import system
+from os.path import isdir, isfile, join
 
 from ctfkit.cli.ctf import *
 from ctfkit.utility import get_current_path
