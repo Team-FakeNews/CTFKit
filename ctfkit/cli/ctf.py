@@ -47,7 +47,7 @@ def init(ctf_name: str, provider: str) -> None:
     """
     # Check if the given name is valid
     if not check_ctf_name(ctf_name):
-        return 1
+        exit()
 
     path = get_current_path()
     ctf_path = join(path, ctf_name)
