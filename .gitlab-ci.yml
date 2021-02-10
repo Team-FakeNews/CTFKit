@@ -7,11 +7,28 @@ include:
     - template: Security/SAST.gitlab-ci.yml
     - template: Security/License-Scanning.gitlab-ci.yml
 
+variables:
+    PIP_CACHE_DIR: $CI_PROJECT_DIR/.pipenv/pipcache
+    WORKON_HOME: $CI_PROJECT_DIR/.pipenv/venvs
+
+cache:
+    paths:
+      - .pipenv
+
 sast:
     variables:
         SAST_DEFAULT_ANALYZERS: bandit
     stage: test
 
+
+# install_dependencies:
+#     stage: .pre
+#     image: python:3.9-alpine
+#     before_script:
+#         - apk add musl-dev gcc
+#         - pip install pipenv
+#     script:
+#         - pipenv sync
 
 typecheck:
     stage: test
