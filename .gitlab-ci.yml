@@ -19,7 +19,7 @@ typecheck:
     before_script:
         - apk add musl-dev gcc nodejs git
         - pip3 install pipenv
-        - pipenv install
+        - pipenv install --dev
     script:
         - pipenv run mypy ctfkit
 
@@ -30,7 +30,7 @@ unittest:
     before_script:
         - apk add musl-dev gcc nodejs git
         - pip3 install pipenv
-        - pipenv install
+        - pipenv install --dev
     script:
         - |
             pipenv run python3 -m coverage run -m unittest discover tests -b; pipenv run python3 -m coverage xml
@@ -46,7 +46,7 @@ pylint:
     before_script:
         - apk add musl-dev gcc
         - pip3 install pipenv
-        - pipenv install
+        - pipenv install --dev
     script:
         - pipenv run python3 -m pylint --exit-zero --output-format=pylint_gitlab.GitlabCodeClimateReporter ctfkit > codeclimate.json
     artifacts:
