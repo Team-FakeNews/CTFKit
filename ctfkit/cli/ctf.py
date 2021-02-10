@@ -11,14 +11,13 @@ from ctfkit.utility import ConfigLoader
 from ctfkit.terraform import CtfDeployment
 
 
-
 pass_config = click.make_pass_decorator(CtfConfig)
 
 
 @click.group()
 @click.option("--config",
               type=ConfigLoader(CtfConfig),
-              default="ctf.config.yaml")
+              default="ctf.yaml")
 @click.pass_context
 def cli(context: Context, config: CtfConfig):
     """Root group for the ctf command"""

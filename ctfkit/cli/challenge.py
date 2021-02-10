@@ -59,7 +59,7 @@ def run(challenge: str) -> None:
     image.
 
     :param challenge: The name of the challenge to run
-    :type file: str
+    :type challenge: str
     """
     """
     TODO: Check if the challenge exists
@@ -88,7 +88,7 @@ def run(challenge: str) -> None:
         except Exception as error:
             print(error)
             print("\n❌ Error while building the Docker image, please check if"
-            " a Dockerfile exists and if it's correct.")
+                  " a Dockerfile exists and if it's correct.")
             sys.exit(1)
         try:
             client.containers.run(
@@ -99,8 +99,8 @@ def run(challenge: str) -> None:
             sp.ok("✔")
         except Exception as error:
             print(error)
-            print(f"\n❌ Error, unable to run a Docker container based on the "
-            f"image {image_name}")
+            print("\n❌ Error, unable to run a Docker container based on the "
+                  f"image {image_name}")
             sys.exit(1)
 
 
@@ -112,7 +112,7 @@ def stop(challenge: str) -> None:
     Docker image.
 
     :param challenge: The name of the running challenge.
-    :type file: str
+    :type challenge: str
     """
     """TODO:
         Check if the challenge is running and if it's an existing challenge.
@@ -125,7 +125,7 @@ def stop(challenge: str) -> None:
     except Exception as error:
         print(error)
         print("\n❌ Error, please check that Docker is installed and that your"
-        " user has the proper rights to run it.")
+              " user has the proper rights to run it.")
         sys.exit(1)
     container_name = f"ctfkit_{challenge}"
     with yaspin(text=f"Stopping challenge {challenge}", color="cyan") as sp:

@@ -78,7 +78,7 @@ class CtfConfig():
     def get_challenges_config(self) -> Iterable[ChallengeConfig]:
         """"
         Loads challenge configurations from the disk
-        Only challenges listed in the ctf.config.yaml are listed
+        Only challenges listed in the ctf.yaml are listed
 
         :return: An iterator with every configuration
         """
