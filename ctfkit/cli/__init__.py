@@ -6,7 +6,7 @@ from . import ctf, challenge
 @click.group()
 def root_cli():
     """
-    Main cli which container all sub-commands
+    Main cli which contains all sub-commands
     It doesn't do anything but showing help to the user
     """
 
