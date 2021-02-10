@@ -28,7 +28,7 @@ unittest:
     stage: test
     image: python:3.9-alpine
     before_script:
-        - apk add musl-dev gcc nodejs git
+        - apk add musl-dev gcc nodejs git terraform
         - pip3 install pipenv
         - pipenv install --dev
     script:
