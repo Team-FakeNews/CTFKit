@@ -14,15 +14,15 @@ python-slugify = "*"
 marshmallow-dataclass = "*"
 marshmallow-enum = "*"
 yaspin = "*"
-mypy = "*"
 pylint-gitlab = "*"
 pylint-enums = "*"
-strictyaml = "*"
-coverage = "*"
 cdktf-cdktf-provider-azurerm = "*"
 cdktf-cdktf-provider-kubernetes = "*"
+pyyaml = "*"
 
 [dev-packages]
+mypy = "*"
+coverage = "*"
 pylint = "*"
 
 [requires]
