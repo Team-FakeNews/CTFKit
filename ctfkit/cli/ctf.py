@@ -1,11 +1,12 @@
 from os import getcwd
+from os.path import join
 from re import findall
 
 import click
 from click.core import Context
 from yaspin import yaspin  # type: ignore
-from yaspin.spinners import Spinners  # type: ignore
 
+from ctfkit.constants import SPINNER_SUCCESS, SPINNER_FAILED, SPINNER_MODEL
 from ctfkit.models import CtfConfig, HostingEnvironment
 from ctfkit.utility import ConfigLoader
 from ctfkit.terraform import CtfDeployment
@@ -45,7 +46,7 @@ def plan(config: CtfConfig, environment: str):
         elem for elem in HostingEnvironment if elem.value == environment)
 
     # Declare out terraform stack
-    app = CtfDeployment(config, environment_e, outdir=getcwd() + '/.tfout')
+    app = CtfDeployment(config, environment_e, outdir=join(getcwd(), '.tfout'))
 
     helpers = TfHelpers(app)
 
@@ -69,7 +70,7 @@ def deploy(config: CtfConfig, environment: str):
         elem for elem in HostingEnvironment if elem.value == environment)
 
     # Declare out terraform stack
-    app = CtfDeployment(config, environment_e, outdir=getcwd() + '/.tfout')
+    app = CtfDeployment(config, environment_e, outdir=join(getcwd(), '.tfout'))
     helpers = TfHelpers(app)
 
     helpers.synth()
@@ -91,7 +92,7 @@ def destroy(config: CtfConfig, environment: str):
     environment_e = next(
         elem for elem in HostingEnvironment if elem.value == environment)
 
-    app = CtfDeployment(config, environment_e, outdir=getcwd() + '/.tfout')
+    app = CtfDeployment(config, environment_e, outdir=join(getcwd(), '.tfout'))
 
     helpers = TfHelpers(app)
 
@@ -115,35 +116,35 @@ class TfHelpers:
         Wrap call to terraform init with a spinner
         """
 
-        with yaspin(Spinners.dots12, text="Downloading modules ...") as spinner:
+        with yaspin(SPINNER_MODEL, text="Downloading modules ...") as spinner:
             _, stderr = self.infra.init()
 
             if len(stderr) > 0:
-                spinner.fail(f"💥 {stderr}")
+                spinner.fail(SPINNER_FAILED + stderr)
             else:
-                spinner.ok("✅ ")
+                spinner.ok(SPINNER_SUCCESS)
 
     def synth(self) -> None:
         """
         Wrap call to terraformcdk synth() method while showing a spinner
         """
-        with yaspin(Spinners.dots12, text="Generating infrastructure configuration ...") as spinner:
+        with yaspin(SPINNER_MODEL, text="Generating infrastructure configuration ...") as spinner:
             self.infra.synth()
-            spinner.ok("✅ ")
+            spinner.ok(SPINNER_SUCCESS)
 
     def plan(self) -> None:
         """
         Wrap call to terraform plan and show result on spinner
         """
 
-        with yaspin(Spinners.dots12, text="Planning infrastructure ...") as spinner:
+        with yaspin(SPINNER_MODEL, text="Planning infrastructure ...") as spinner:
             result = self.infra.plan()
             if len(result[1]) > 0:
                 spinner.fail("💥 ")
                 print(result[1])
 
             else:
-                spinner.ok("✅ ")
+                spinner.ok(SPINNER_SUCCESS)
                 print('\n'.join(findall(r'(.+resource "[^"]+" "[^"]+") \{', result[0])))
 
     def deploy(self) -> None:
@@ -151,23 +152,23 @@ class TfHelpers:
         Wrap call to terraform apply while showing stdout on a spinner
         """
 
-        with yaspin(Spinners.dots12, text='Deploying infrastructure ... ') as spinner:
+        with yaspin(SPINNER_MODEL, text='Deploying infrastructure ... ') as spinner:
             stdout = self.infra.apply()
             if stdout is not None:
                 for line in stdout:
                     if line != '':
                         spinner.text = "Deploying infrastructure ... " + line.strip('\n')
 
-            spinner.ok("✅ ")
+            spinner.ok(SPINNER_SUCCESS)
 
     def destroy(self) -> None:
         """
         Wrap a call to terraform destroy while showing stdout on a spinner
         """
 
-        with yaspin(Spinners.dots12) as spinner:
+        with yaspin(SPINNER_MODEL) as spinner:
             for line in self.infra.destroy():
                 if line != '':
                     spinner.text = "Destroying infrastructure ... " + line.strip('\n')
 
-            spinner.ok("✅ ")
+            spinner.ok(SPINNER_SUCCESS)
