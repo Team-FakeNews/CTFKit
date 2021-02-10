@@ -6,8 +6,6 @@ name = "pypi"
 [packages]
 click = "*"
 GitPython = "*"
-trafaret = "*"
-trafaret-config = "*"
 docker = "*"
 validators = "*"
 cdktf = "*"
