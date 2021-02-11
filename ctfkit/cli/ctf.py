@@ -138,7 +138,6 @@ def plan(config: CtfConfig, environment: str):
         # Declare a GCP cluster while passing its configuration
         gcp.GcpK8sCluster(stack, "cluster", config, deployment_config)
 
-    with yaspin(Spinners.dots12,
-        text="Generating infrastructure configuration ...") as spinner:
+    with yaspin(Spinners.dots12, text="Generating infrastructure configuration ...") as spinner:
         app.synth()
         spinner.ok("✅ ")
