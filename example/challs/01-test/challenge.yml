@@ -11,7 +11,7 @@ containers:
       - proto: tcp
         port: 1337
       - proto: udp
-        port: 71337
+        port: 31337
 # Not implemented yet:
 # vm:
 #     idk mate but it's for virtual machines

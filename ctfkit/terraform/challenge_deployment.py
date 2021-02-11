@@ -16,9 +16,9 @@ class ChallengeDeployment(Resource):
 
         Deployment(
             self,
-            f'challenge_{challenge_config.slug}',
+            f'challenge-{challenge_config.slug}',
             metadata=[DeploymentMetadata(
-                name=f'challenge_{challenge_config.slug}',
+                name=f'challenge-{challenge_config.slug}',
                 # namespace='' TODO: Manage teams namespaces
                 labels={
                     'chall': challenge_config.slug

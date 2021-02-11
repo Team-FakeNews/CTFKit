@@ -11,7 +11,7 @@ from ctfkit.terraform.gcp import GcpGKE
 from ctfkit.models.hosting_provider import HostingProvider
 from ctfkit.models.ctf_config import CtfConfig, DeploymentConfig, GcpAuthConfig
 from ctfkit.models import HostingEnvironment
-
+from .challenge_deployment import ChallengeDeployment
 
 class CtfDeployment(App):
     """
@@ -106,9 +106,22 @@ class CtfStack(TerraformStack):
         self.deployment_config = config.get_deployment(environment)
 
         if self.deployment_config.provider == HostingProvider.GCP:
-            self.__declare_gcp_cluster()
+            cluster = self._declare_gcp_cluster()
+        else:
+            raise Exception(f'Bad Hosting provider: {self.deployment_config.provider}')
 
-    def __declare_gcp_cluster(self) -> None:
+        # Kubernetes provider configuration using previously configured cluster
+        KubernetesProvider(
+            self,
+            'k8s_provider',
+            host=cluster.endpoint.value
+        )
+
+        for challenge_config in config.get_challenges_config():
+            ChallengeDeployment(self, challenge_config)
+
+
+    def _declare_gcp_cluster(self) -> GcpGKE:
         """
         Configure Google Cloud Platform's provider with provided credentials
         :private:
@@ -132,4 +145,4 @@ class CtfStack(TerraformStack):
                   'to authenticate with GCP')
             sys.exit(1)
 
-        GcpGKE(self, 'k8s_cluster', self.deployment_config.cluster)
+        return GcpGKE(self, 'k8s_cluster', self.deployment_config.cluster)
