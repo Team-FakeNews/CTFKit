@@ -6,7 +6,6 @@ from click.testing import CliRunner
 from ctfkit.cli import root_cli
 
 
-
 class TestCliCtf(TestCase):
     runner = CliRunner()
 
@@ -29,4 +28,3 @@ deployments:
             self.assertEqual(result.exit_code, 0)
 
             self.assertTrue(path.exists('.tfout'))
-
