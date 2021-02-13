@@ -39,7 +39,7 @@ class DeploymentConfig:
 
 
 @dataclass
-class CtfConfig():
+class CtfConfig:
     """
     The root configuration of a CTF.
     It contains every each information which will be used by ctfkit

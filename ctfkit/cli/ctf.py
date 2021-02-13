@@ -1,43 +1,34 @@
+from ctfkit.models.ctf_config import ClusterConfig
+from os import getcwd
+from os.path import join
+import sys
+
 import click
 import validators  # type: ignore
 from cdktf import App
-from click.exceptions import BadParameter
 from git import Repo  # type: ignore
-from os.path import join
 from yaspin import yaspin  # type: ignore
 from yaspin.spinners import Spinners  # type: ignore
+from click.exceptions import BadParameter
 
 from ctfkit.models import CtfConfig, DeploymentConfig, HostingEnvironment, HostingProvider
 from ctfkit.terraform import CtfStack
 from ctfkit.terraform.k8s_cluster import gcp
 from ctfkit.utility import ConfigLoader, get_current_path, mkdir, touch
 
+
 pass_config = click.make_pass_decorator(CtfConfig)
-
-
-def check_ctf_name(name: str) -> bool:
-    """
-    Check if a given name is valid for a new CTF
-
-    :param name: The name to check
-    """
-    if not validators.slug(name):
-        print(f"'{name}' is not a valid name. You must supply a valid name for a"
-        " new CTF (must be in a slug format)")
-        return False
-    else:
-        return True
 
 
 @click.group()
 def cli():
-    """ CTF generation/handling commands """
-    pass
+    """CTF generation/handling commands"""
 
 
 @cli.command('init')
 @click.option("-n", "--ctf-name", type=str, prompt=True)
-@click.option("--provider", type=str)
+@click.option('-p', '--provider', prompt=True, 
+              type=click.Choice(list(map(lambda e: e.value, HostingProvider))))
 def init(ctf_name: str, provider: str) -> None:
     """
     Create the CTF repository in the current working directory
@@ -47,40 +38,23 @@ def init(ctf_name: str, provider: str) -> None:
     """
     # Check if the given name is valid
     if not check_ctf_name(ctf_name):
-        exit()
+        sys.exit(1)
 
     path = get_current_path()
     ctf_path = join(path, ctf_name)
 
-    # No provider provided
-    if provider is None:
-        provider = ""
-    else:
-        # Check if the given provider is valid
-        allowed_providers = []
-        for provider_ in HostingProvider:
-            allowed_providers.append(provider_.value)
-
-        # Get the provider until it is a valid one
-        while provider not in allowed_providers:
-            print(f"The provider must be one of : {allowed_providers}")
-            provider = input("CTF provider (not case-sensitive): ").lower()
-
     # Create the CTF's directory
-    print(f"Creating the repo for the CTF '{ctf_name}'...")
     mkdir(ctf_path)
 
     # Init the CTF git repo
     repo = Repo.init(ctf_path)
 
-    """
-    One CTF directory will be like so:
+    # One CTF directory will be like so:
+    # /ctf_name/
+    #     challenges/ # all challenges hosted on the CTF
+    #     config/     # the configuration files of the CTF
+    #     README.md   # a dummy README file to introduce the CTF
 
-    /ctf_name/
-        challenges/ # all challenges hosted on the CTF
-        config/     # the configuration files of the CTF
-        README.md   # a dummy README file to introduce the CTF
-    """
     # We initiate the CTF's directory with default files
     readme_default_file = "README.md"
     default_dirs = ["challenges", "config"]
@@ -127,8 +101,7 @@ def plan(config: CtfConfig, environment: str):
         deployment_config = next(
             elt for elt in config.deployments if elt.environment.value == environment)
     except StopIteration:
-        raise BadParameter(f"No '{environment}' environment could be found in"
-            "your configuration")
+        raise BadParameter(f"No '{environment}' environment could be found in your configuration")
 
     # Declare out terraform stack
     app = App(outdir=join(getcwd(), "/.tfout"))
@@ -141,3 +114,17 @@ def plan(config: CtfConfig, environment: str):
     with yaspin(Spinners.dots12, text="Generating infrastructure configuration ...") as spinner:
         app.synth()
         spinner.ok("✅ ")
+
+
+def check_ctf_name(name: str) -> bool:
+    """
+    Check if a given name is valid for a new CTF
+
+    :param name: The name to check
+    """
+    if not validators.slug(name):
+        print(f"'{name}' is not a valid name. You must supply a valid name for a"
+              " new CTF (must be in a slug format)")
+        return False
+
+    return True

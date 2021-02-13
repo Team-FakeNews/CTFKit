@@ -95,19 +95,19 @@ def touch(file: str, data=None) -> None:
         f.close()
 
 
-def mkdir(dir: str) -> None:
+def mkdir(path: str) -> None:
     """Creates a directory if it does not already exists
 
-    :param dir: The directory to create
-    :type dir: str
+    :param path: The directory to create
     """
-    if os.path.exists(dir) and os.path.isdir(dir):
-        print(f"Directory {dir} already exists")
+    if os.path.exists(path) and os.path.isdir(path):
+        print(f"Directory {path} already exists")
     else:
         try:
-            os.mkdir(dir)
-        except OSError as e:
-            print(e)
+            os.mkdir(path)
+        except OSError as error:
+            print(error)
+            raise error
 
 
 def check_installation() -> None:
