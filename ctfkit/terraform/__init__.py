@@ -120,7 +120,7 @@ class CtfStack(TerraformStack):
             with open(self.deployment_config.gcp.credentials_file, 'r') as credentials:
                 GoogleProvider(
                     self,
-                    HostingProvider.GCP,
+                    HostingProvider.GCP.value,
                     credentials=credentials.read(),
                     project=self.deployment_config.gcp.project,
                     region=self.deployment_config.gcp.region,
