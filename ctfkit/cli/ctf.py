@@ -6,7 +6,7 @@ import click
 from click.core import Context
 from yaspin import yaspin  # type: ignore
 
-from ctfkit.constants import SPINNER_SUCCESS, SPINNER_FAILED, SPINNER_MODEL
+from ctfkit.constants import SPINNER_SUCCESS, SPINNER_FAIL, SPINNER_MODEL
 from ctfkit.models import CtfConfig, HostingEnvironment
 from ctfkit.utility import ConfigLoader
 from ctfkit.terraform import CtfDeployment
@@ -120,7 +120,7 @@ class TfHelpers:
             _, stderr = self.infra.init()
 
             if len(stderr) > 0:
-                spinner.fail(SPINNER_FAILED + stderr)
+                spinner.fail(SPINNER_FAIL + stderr)
             else:
                 spinner.ok(SPINNER_SUCCESS)
 
@@ -140,7 +140,7 @@ class TfHelpers:
         with yaspin(SPINNER_MODEL, text="Planning infrastructure ...") as spinner:
             result = self.infra.plan()
             if len(result[1]) > 0:
-                spinner.fail("💥 ")
+                spinner.fail(SPINNER_FAIL)
                 print(result[1])
 
             else:
