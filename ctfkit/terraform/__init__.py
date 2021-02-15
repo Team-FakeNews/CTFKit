@@ -1,6 +1,6 @@
 import sys
 from subprocess import PIPE, Popen
-from typing import IO, List, Any, Mapping, Optional, Tuple
+from typing import IO, Any, Mapping, Tuple
 
 from constructs import Construct
 from cdktf import App, TerraformStack
@@ -130,6 +130,6 @@ class CtfStack(TerraformStack):
         except FileNotFoundError:
             print(f'ERROR: You are missing a {self.deployment_config.gcp.credentials_file}'
                   'to authenticate with GCP')
-            exit(1)
+            sys.exit(1)
 
         GcpGKE(self, 'k8s_cluster', self.deployment_config.cluster)

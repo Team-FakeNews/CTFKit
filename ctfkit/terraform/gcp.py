@@ -3,7 +3,6 @@ from cdktf import Resource, TerraformOutput
 from cdktf_cdktf_provider_google import ContainerCluster
 
 from ctfkit.models.ctf_config import ClusterConfig
-from ctfkit.models import CtfConfig, DeploymentConfig
 
 
 class GcpGKE(Resource):

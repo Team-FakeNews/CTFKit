@@ -1,5 +1,5 @@
 from cdktf import Resource
-from cdktf_cdktf_provider_kubernetes import Deployment,DeploymentMetadata, DeploymentSpec, DeploymentSpecSelector, DeploymentSpecTemplate, DeploymentSpecTemplateMetadata, DeploymentSpecTemplateSpec, DeploymentSpecTemplateSpecContainer, DeploymentSpecTemplateSpecContainerPort
+from cdktf_cdktf_provider_kubernetes import Deployment, DeploymentMetadata, DeploymentSpec, DeploymentSpecSelector, DeploymentSpecTemplate, DeploymentSpecTemplateMetadata, DeploymentSpecTemplateSpec, DeploymentSpecTemplateSpecContainer, DeploymentSpecTemplateSpecContainerPort
 from constructs import Construct
 
 from ctfkit.models import ChallengeConfig

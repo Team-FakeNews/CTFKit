@@ -8,8 +8,8 @@ from .challenge_deployment import ChallengeDeployment
 
 
 class K8sChallenges(Resource):
-    def __init__(self, scope: Construct, id: str, challenges: List[ChallengeConfig]) -> None:
-        super().__init__(scope, id)
+    def __init__(self, scope: Construct, name: str, challenges: List[ChallengeConfig]) -> None:
+        super().__init__(scope, name)
 
         for challenge_config in challenges:
             ChallengeDeployment(self, challenge_config)
