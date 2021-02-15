@@ -1,3 +1,4 @@
+from ctfkit.models.teams import Team
 from os.path import join
 from pprint import pformat
 from typing import Iterable, List, Optional
@@ -66,6 +67,7 @@ class CtfConfig:
     """
     kind: str
     name: str
+    teams_file: Optional[str]
     deployments: List[DeploymentConfig] = field(default_factory=list)
     challenges: List[str] = field(default_factory=list)
 
@@ -86,6 +88,13 @@ class CtfConfig:
             lambda path: Challenge.from_yaml(join(path, 'challenge.yaml')).config,
             self.challenges
         )
+
+    def get_teams(self) -> List[Team]:
+        """
+        Loads teams list from the disk
+        """
+        with open(self.teams_file) as file_:
+            return file_
 
     def get_slug(self) -> str:
         """

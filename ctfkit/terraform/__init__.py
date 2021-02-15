@@ -108,13 +108,13 @@ class CtfStack(TerraformStack):
         if self.deployment_config.provider == HostingProvider.GCP:
             cluster = self._declare_gcp_cluster()
         else:
-            raise Exception(f'Bad Hosting provider: {self.deployment_config.provider}')
+            raise Exception(f'Unsupported Hosting provider: {self.deployment_config.provider}')
 
         # Kubernetes provider configuration using previously configured cluster
         KubernetesProvider(
             self,
             'k8s_provider',
-            host=cluster.endpoint.value
+            config_path="/home/adam/.kube/config"
         )
 
         for challenge_config in config.get_challenges_config():

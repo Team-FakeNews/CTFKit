@@ -27,37 +27,9 @@ class GcpGKE(Resource):
             initial_node_count=cluster_config.node_count
         )
 
-    @property
-    def username(self):
-        """
-        Terraform output: Username to use to connect to the kubernetes endpoint
-        """
-        return TerraformOutput(
-            self,
-            'username',
-            sensitive=True,
-            value=self.cluster.master_auth[0].username
-        )
-
-    @property
-    def password(self):
-        """
-        Terraform output: Password to use to connect to the kubernetes endpoint
-        """
-        return TerraformOutput(
-            self,
-            'password',
-            sensitive=True,
-            value=self.cluster.master_auth[0].password
-        )
-
-    @property
-    def endpoint(self):
-        """
-        Terraform output: Endpoint of the kubernetes API
-        """
-        return TerraformOutput(
-            self,
-            'endpoint',
-            value=self.cluster.endpoint
-        )
+        # self.client_certificate = TerraformOutput(
+        #     self,
+        #     'username',
+        #     sensitive=True,
+        #     value=self.cluster.master_auth.pop().client_certificate
+        # )

@@ -8,9 +8,9 @@ files:
 containers:
   - image: nginx:latest
     ports:
-      - proto: tcp
+      - proto: TCP
         port: 1337
-      - proto: udp
+      - proto: UDP
         port: 31337
 # Not implemented yet:
 # vm:
