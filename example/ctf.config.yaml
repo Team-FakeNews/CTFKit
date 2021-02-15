@@ -1,7 +1,0 @@
-kind: ctf
-name: fakectf
-challenges:
-    - ./challs/01-test
-deployments:
-    - environment: testing
-      provider: gcp

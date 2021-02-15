@@ -9,6 +9,7 @@ Install prerequisites
 * sphinx : code documentation
 * virtualenv : python environment handling
 * pylint : keeping the code clean
+* nodejs : required by the terraform cdk
 
 
 Debian::

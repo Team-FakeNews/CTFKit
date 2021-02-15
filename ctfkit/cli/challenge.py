@@ -1,9 +1,12 @@
+import sys
+import os
+
 import click
 import docker  # type: ignore
-from yaspin import yaspin  # type: ignore
-import ctfkit.utility
-import os
 import validators  # type: ignore
+from yaspin import yaspin  # type: ignore
+
+import ctfkit.utility
 from . import create_challenge
 
 
@@ -17,10 +20,10 @@ def check_challenge_name(name: str) -> bool:
     """
     if not validators.slug(name):
         print(f"{name} is not a valid name. You must supply a valid name for a"
-        " new challenge (must be a slug format)")
+              " new challenge (must be a slug format)")
         return False
-    else:
-        return True
+
+    return True
 
 
 def check_challenge_url(url: str) -> bool:
@@ -33,10 +36,10 @@ def check_challenge_url(url: str) -> bool:
     """
     if not validators.url(url):
         print(f"{url} is not a valid URL. You must supply a valid URL for a "
-        "challenge import (http:// or https://)")
+              "challenge import (http:// or https://)")
         return False
-    else:
-        return True
+
+    return True
 
 
 @click.group()
@@ -56,22 +59,24 @@ def run(challenge: str) -> None:
     image.
 
     :param challenge: The name of the challenge to run
-    :type file: str
+    :type challenge: str
     """
-    """TODO:
-        Check if the challenge exists
-        Use a challenge object to get the information related to the challenge
-        such as path, parameters like required ports or volumes)
+    """
+    TODO: Check if the challenge exists
+    Use a challenge object to get the information related to the challenge
+    such as path, parameters like required ports or volumes)
     """
     try:
         # Instance of the docker environment
         client = docker.from_env()
-    except:
+    except Exception as error:
+        print(error)
         print("\n❌ Error, please check that Docker is installed and that your"
-        " user has the proper rights to run it.")
+              " user has the proper rights to run it.")
+        sys.exit(1)
+
     # Build the docker image
-    tmp_challenge_path = os.path.join(ctfkit.utility.get_current_path(),
-    challenge)
+    tmp_challenge_path = os.path.join(ctfkit.utility.get_current_path(), challenge)
     image_name = f"ctfkit:{challenge}"
     with yaspin(text=f"Starting challenge {challenge}", color="cyan") as sp:
         try:
@@ -80,10 +85,11 @@ def run(challenge: str) -> None:
                 rm=True, forcerm=True,
                 tag=image_name)
             sp.write("✔ Building image")
-        except:
+        except Exception as error:
+            print(error)
             print("\n❌ Error while building the Docker image, please check if"
-            " a Dockerfile exists and if it's correct.")
-            exit(1)
+                  " a Dockerfile exists and if it's correct.")
+            sys.exit(1)
         try:
             client.containers.run(
                 image_name,
@@ -91,10 +97,11 @@ def run(challenge: str) -> None:
                 detach=True,
                 name=f"ctfkit_{challenge}")
             sp.ok("✔")
-        except:
-            print(f"\n❌ Error, unable to run a Docker container based on the "
-            f"image {image_name}")
-            exit(1)
+        except Exception as error:
+            print(error)
+            print("\n❌ Error, unable to run a Docker container based on the "
+                  f"image {image_name}")
+            sys.exit(1)
 
 
 @cli.command('stop')
@@ -105,7 +112,7 @@ def stop(challenge: str) -> None:
     Docker image.
 
     :param challenge: The name of the running challenge.
-    :type file: str
+    :type challenge: str
     """
     """TODO:
         Check if the challenge is running and if it's an existing challenge.
@@ -115,35 +122,39 @@ def stop(challenge: str) -> None:
     try:
         # Instance of the docker environment
         client = docker.from_env()
-    except:
+    except Exception as error:
+        print(error)
         print("\n❌ Error, please check that Docker is installed and that your"
-        " user has the proper rights to run it.")
-        exit(1)
+              " user has the proper rights to run it.")
+        sys.exit(1)
     container_name = f"ctfkit_{challenge}"
     with yaspin(text=f"Stopping challenge {challenge}", color="cyan") as sp:
         # Get the container related to the challenge
         try:
             container = client.containers.get(container_name)
-        except:
+        except Exception as error:
+            print(error)
             print(f"\n❌ Error, please check that the supplied challenge is "
-            f"running : {container_name}")
-            exit(1)
+                  f"running : {container_name}")
+            sys.exit(1)
         # Stop the container
         try:
             container.stop()
-        except:
+        except Exception as error:
+            print(error)
             print("\n❌ Error, unable to stop the Docker container :\n")
-            exit(1)
+            sys.exit(1)
         sp.write("✔ Stopping Docker container")
         # Remove the related image
         try:
             client.images.remove(
                 image=container.image.id,
                 force=True)
-        except:
+        except Exception as error:
+            print(error)
             print("\n❌ Error, unable to remove the Docker image related to "
-            "the challenge :\n")
-            exit(1)
+                  "the challenge :\n")
+            sys.exit(1)
         sp.write("✔ Removing image")
         sp.ok("✔")
 
