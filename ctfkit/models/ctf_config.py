@@ -83,7 +83,7 @@ class CtfConfig():
         :return: An iterator with every configuration
         """
         return map(
-            lambda path: Challenge.from_yaml(join(path, 'challenge.yml')).config,
+            lambda path: Challenge.from_yaml(join(path, 'challenge.yaml')).config,
             self.challenges
         )
 
