@@ -7,3 +7,4 @@ class HostingProvider(Enum):
     infrastructure will be deployed on
     """
     GCP: str = "gcp"
+    AZURE: str = "azure"

@@ -6,12 +6,14 @@ from constructs import Construct
 from cdktf import App, TerraformStack
 from cdktf_cdktf_provider_google import GoogleProvider
 from cdktf_cdktf_provider_kubernetes import KubernetesProvider
+from cdktf_cdktf_provider_azurerm import AzurermProvider, AzurermProviderFeatures
 
-from ctfkit.terraform.gcp import GcpGKE
 from ctfkit.models.hosting_provider import HostingProvider
-from ctfkit.models.ctf_config import CtfConfig, DeploymentConfig, GcpAuthConfig
+from ctfkit.models.ctf_config import CtfConfig, DeploymentConfig
 from ctfkit.models import HostingEnvironment
 from .challenge_deployment import ChallengeDeployment
+from .azure import AzureAKS
+from .gcp import GcpGKE
 
 class CtfDeployment(App):
     """
@@ -107,6 +109,10 @@ class CtfStack(TerraformStack):
 
         if self.deployment_config.provider == HostingProvider.GCP:
             cluster = self._declare_gcp_cluster()
+        
+        elif self.deployment_config.provider == HostingProvider.AZURE:
+            cluster = self._declare_azure_cluster()
+
         else:
             raise Exception(f'Unsupported Hosting provider: {self.deployment_config.provider}')
 
@@ -114,10 +120,10 @@ class CtfStack(TerraformStack):
         KubernetesProvider(
             self,
             'k8s_provider',
-            config_path="/home/adam/.kube/config"
+            cluster_ca_certificate=cluster.cluster_ca_certificate
         )
 
-        for challenge_config in config.get_challenges_config():
+        for challenge_config in config.challenges_config:
             ChallengeDeployment(self, challenge_config)
 
 
@@ -145,4 +151,9 @@ class CtfStack(TerraformStack):
                   'to authenticate with GCP')
             sys.exit(1)
 
-        return GcpGKE(self, 'k8s_cluster', self.deployment_config.cluster)
+        return GcpGKE(self, 'k8s_cluster', self.deployment_config.gcp)
+
+    def _declare_azure_cluster(self) -> AzureAKS:
+        AzurermProvider(self, HostingProvider.AZURE.value, features=[AzurermProviderFeatures()])
+
+        return AzureAKS(self, 'k8s_cluster', self.deployment_config.azure)

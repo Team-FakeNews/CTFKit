@@ -2,7 +2,7 @@ from constructs import Construct
 from cdktf import Resource, TerraformOutput
 from cdktf_cdktf_provider_google import ContainerCluster
 
-from ctfkit.models.ctf_config import ClusterConfig
+from ctfkit.models.ctf_config import GcpConfig
 
 
 class GcpGKE(Resource):
@@ -17,14 +17,14 @@ class GcpGKE(Resource):
             self,
             scope: Construct,
             name: str,
-            cluster_config: ClusterConfig) -> None:
+            gcp_config: GcpConfig) -> None:
         super().__init__(scope, name)
 
         self.cluster = ContainerCluster(
             self,
             'gke',
             name="ctf-cluster",
-            initial_node_count=cluster_config.node_count
+            initial_node_count=gcp_config.node_count
         )
 
         # self.client_certificate = TerraformOutput(

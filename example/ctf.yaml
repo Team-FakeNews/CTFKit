@@ -5,8 +5,12 @@ challenges:
 teams_file: ./teams.json
 deployments:
     -   environment: testing
-        provider: gcp
+        provider: azure
         gcp:
             project: interiut
             region: europe-west1
             zone: europe-west1-b
+        azure:
+            location: westeurope
+            node_count: 1
+            vm_size: Standard_D2_v2
