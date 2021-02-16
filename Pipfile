@@ -6,8 +6,6 @@ name = "pypi"
 [packages]
 click = "*"
 GitPython = "*"
-trafaret = "*"
-trafaret-config = "*"
 docker = "*"
 validators = "*"
 cdktf = "*"
@@ -16,11 +14,16 @@ python-slugify = "*"
 marshmallow-dataclass = "*"
 marshmallow-enum = "*"
 yaspin = "*"
-mypy = "*"
 pylint-gitlab = "*"
 pylint-enums = "*"
+cdktf-cdktf-provider-azurerm = "*"
+cdktf-cdktf-provider-kubernetes = "*"
+pyyaml = "*"
 
 [dev-packages]
+mypy = "*"
+coverage = "*"
+pylint = "*"
 
 [requires]
 python_version = "3"

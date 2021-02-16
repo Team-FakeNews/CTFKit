@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ctfkit.utility import ConfigLoader
-from ctfkit.models import ChallengeConfig
+from ctfkit.models.challenge_config import ChallengeConfig
 
 
 class Challenge:

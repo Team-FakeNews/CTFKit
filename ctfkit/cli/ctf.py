@@ -94,7 +94,6 @@ def plan(config: CtfConfig, environment: str):
     Generate terraform configuration files
     from the ctf configuration and plan required changes
     """
-    deployment_config: DeploymentConfig
 
     # Find the requested environment
     try:
@@ -107,9 +106,10 @@ def plan(config: CtfConfig, environment: str):
     app = App(outdir=join(getcwd(), "/.tfout"))
     stack = CtfStack(app, deployment_config.environment.value)
 
-    if deployment_config.provider == HostingProvider.GCP:
-        # Declare a GCP cluster while passing its configuration
-        gcp.GcpK8sCluster(stack, "cluster", config, deployment_config)
+        with yaspin(SPINNER_MODEL) as spinner:
+            for line in self.infra.destroy():
+                if line != '':
+                    spinner.text = "Destroying infrastructure ... " + line.strip('\n')
 
     with yaspin(Spinners.dots12, text="Generating infrastructure configuration ...") as spinner:
         app.synth()

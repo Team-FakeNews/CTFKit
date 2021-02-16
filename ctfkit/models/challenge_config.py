@@ -1,7 +1,8 @@
+from typing import List
 from dataclasses import dataclass, field
 from pprint import pformat
-from typing import List
 
+from slugify import slugify
 
 @dataclass
 class PortConfig:
@@ -14,8 +15,16 @@ class PortConfig:
         """ Repr method """
         return pformat(vars(self))
 
-
 @dataclass
+class ContainerConfig:
+    """
+    Represent the configuration of a the container which host the challenge
+    """
+    image: str
+    ports: List[PortConfig] = field(default_factory=list)
+
+
+@dataclass(repr=False)
 class ChallengeConfig:
     """
     Will be used to convert a YAML config file to an object we can
@@ -27,17 +36,22 @@ class ChallengeConfig:
     points: int
     category: str
     author: str
+    containers: List[ContainerConfig] = field(default_factory=list)
     files: List[str] = field(default_factory=list)
-    container: List[PortConfig] = field(default_factory=list)
 
-    def __repr__(self) -> str:
-        """ Repr method """
-        return pformat(vars(self))
+    @property
+    def slug(self) -> str:
+        """
+        Slugified version of the challenge's name
+        """
+        return slugify(self.name)
 
+    @property
     def has_files(self) -> bool:
         """ Check if a challenge uses external files """
         return len(self.files) > 0
 
+    @property
     def has_container(self) -> bool:
         """ Check if a challenge needs a container to run """
-        return len(self.container) > 0
+        return len(self.containers) > 0
