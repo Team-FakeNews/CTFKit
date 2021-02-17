@@ -107,9 +107,9 @@ def plan(config: CtfConfig, environment: str):
     stack = CtfStack(app, deployment_config.environment.value)
 
     with yaspin(SPINNER_MODEL) as spinner:
-            for line in self.infra.destroy():
-                if line != '':
-                    spinner.text = "Destroying infrastructure ... " + line.strip('\n')
+        for line in self.infra.destroy():
+            if line != '':
+                spinner.text = "Destroying infrastructure ... " + line.strip('\n')
 
     with yaspin(Spinners.dots12, text="Generating infrastructure configuration ...") as spinner:
         app.synth()
