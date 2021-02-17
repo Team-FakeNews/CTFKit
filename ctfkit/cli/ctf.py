@@ -106,7 +106,7 @@ def plan(config: CtfConfig, environment: str):
     app = App(outdir=join(getcwd(), "/.tfout"))
     stack = CtfStack(app, deployment_config.environment.value)
 
-        with yaspin(SPINNER_MODEL) as spinner:
+    with yaspin(SPINNER_MODEL) as spinner:
             for line in self.infra.destroy():
                 if line != '':
                     spinner.text = "Destroying infrastructure ... " + line.strip('\n')
