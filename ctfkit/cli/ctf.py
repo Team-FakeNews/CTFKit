@@ -1,28 +1,28 @@
-from ctfkit.models.ctf_config import ClusterConfig
 from os import getcwd
 from os.path import join
-import sys
+from re import findall
 
 import click
-import validators  # type: ignore
-from cdktf import App
-from git import Repo  # type: ignore
+from click.core import Context
 from yaspin import yaspin  # type: ignore
-from yaspin.spinners import Spinners  # type: ignore
-from click.exceptions import BadParameter
 
-from ctfkit.models import CtfConfig, DeploymentConfig, HostingEnvironment, HostingProvider
-from ctfkit.terraform import CtfStack
-from ctfkit.terraform.k8s_cluster import gcp
-from ctfkit.utility import ConfigLoader, get_current_path, mkdir, touch
+from ctfkit.constants import SPINNER_SUCCESS, SPINNER_FAIL, SPINNER_MODEL
+from ctfkit.models import CtfConfig, HostingEnvironment
+from ctfkit.utility import ConfigLoader
+from ctfkit.terraform import CtfDeployment
 
 
 pass_config = click.make_pass_decorator(CtfConfig)
 
 
 @click.group()
-def cli():
-    """CTF generation/handling commands"""
+@click.option("--config",
+              type=ConfigLoader(CtfConfig),
+              default="ctf.yaml")
+@click.pass_context
+def cli(context: Context, config: CtfConfig):
+    """Root group for the ctf command"""
+    context.obj = config
 
 
 @cli.command('init')
@@ -85,9 +85,6 @@ def init(ctf_name: str, provider: str) -> None:
 @cli.command('plan')
 @click.argument('environment', required=True,
                 type=click.Choice(map(lambda e: e.value, HostingEnvironment)))
-@click.option("--config",
-              type=ConfigLoader(CtfConfig),
-              default="ctf.yaml")
 @pass_config
 def plan(config: CtfConfig, environment: str):
     """
@@ -95,36 +92,133 @@ def plan(config: CtfConfig, environment: str):
     from the ctf configuration and plan required changes
     """
 
-    # Find the requested environment
-    try:
-        deployment_config = next(
-            elt for elt in config.deployments if elt.environment.value == environment)
-    except StopIteration:
-        raise BadParameter(f"No '{environment}' environment could be found in your configuration")
+    environment_e = next(
+        elem for elem in HostingEnvironment if elem.value == environment)
 
     # Declare out terraform stack
-    app = App(outdir=join(getcwd(), "/.tfout"))
-    stack = CtfStack(app, deployment_config.environment.value)
+    app = CtfDeployment(config, environment_e, outdir=join(getcwd(), '.tfout'))
 
-    with yaspin(SPINNER_MODEL) as spinner:
-        for line in self.infra.destroy():
-            if line != '':
-                spinner.text = "Destroying infrastructure ... " + line.strip('\n')
+    helpers = TfHelpers(app)
 
-    with yaspin(Spinners.dots12, text="Generating infrastructure configuration ...") as spinner:
-        app.synth()
-        spinner.ok("✅ ")
+    helpers.synth()
+    helpers.init()
+    helpers.plan()
 
 
-def check_ctf_name(name: str) -> bool:
+@cli.command('deploy')
+@click.argument('environment', required=True,
+                type=click.Choice(map(lambda e: e.value, HostingEnvironment)))
+@pass_config
+def deploy(config: CtfConfig, environment: str):
     """
-    Check if a given name is valid for a new CTF
-
-    :param name: The name to check
+    Generate terraform configuration files
+    from the ctf configuration and deploy required changes
     """
-    if not validators.slug(name):
-        print(f"'{name}' is not a valid name. You must supply a valid name for a"
-              " new CTF (must be in a slug format)")
-        return False
 
-    return True
+    # Find the requested environment
+    environment_e = next(
+        elem for elem in HostingEnvironment if elem.value == environment)
+
+    # Declare out terraform stack
+    app = CtfDeployment(config, environment_e, outdir=join(getcwd(), '.tfout'))
+    helpers = TfHelpers(app)
+
+    helpers.synth()
+    helpers.init()
+    helpers.deploy()
+
+
+@cli.command('destroy')
+@click.argument('environment', required=True,
+                type=click.Choice(map(lambda e: e.value, HostingEnvironment)))
+@pass_config
+def destroy(config: CtfConfig, environment: str):
+    """
+    Generate terraform configuration files
+    from the ctf configuration and deploy required changes
+    """
+
+    # Find the requested environment
+    environment_e = next(
+        elem for elem in HostingEnvironment if elem.value == environment)
+
+    app = CtfDeployment(config, environment_e, outdir=join(getcwd(), '.tfout'))
+
+    helpers = TfHelpers(app)
+
+    helpers.synth()
+    helpers.init()
+    helpers.destroy()
+
+
+class TfHelpers:
+    """
+    Infrastructure related helpers
+    """
+
+    infra: CtfDeployment
+
+    def __init__(self, infra: CtfDeployment) -> None:
+        self.infra = infra
+
+    def init(self) -> None:
+        """
+        Wrap call to terraform init with a spinner
+        """
+
+        with yaspin(SPINNER_MODEL, text="Downloading modules ...") as spinner:
+            _, stderr = self.infra.init()
+
+            if len(stderr) > 0:
+                spinner.fail(SPINNER_FAIL + stderr)
+            else:
+                spinner.ok(SPINNER_SUCCESS)
+
+    def synth(self) -> None:
+        """
+        Wrap call to terraformcdk synth() method while showing a spinner
+        """
+        with yaspin(SPINNER_MODEL, text="Generating infrastructure configuration ...") as spinner:
+            self.infra.synth()
+            spinner.ok(SPINNER_SUCCESS)
+
+    def plan(self) -> None:
+        """
+        Wrap call to terraform plan and show result on spinner
+        """
+
+        with yaspin(SPINNER_MODEL, text="Planning infrastructure ...") as spinner:
+            result = self.infra.plan()
+            if len(result[1]) > 0:
+                spinner.fail(SPINNER_FAIL)
+                print(result[1])
+
+            else:
+                spinner.ok(SPINNER_SUCCESS)
+                print('\n'.join(findall(r'(.+resource "[^"]+" "[^"]+") \{', result[0])))
+
+    def deploy(self) -> None:
+        """
+        Wrap call to terraform apply while showing stdout on a spinner
+        """
+
+        with yaspin(SPINNER_MODEL, text='Deploying infrastructure ... ') as spinner:
+            stdout = self.infra.apply()
+            if stdout is not None:
+                for line in stdout:
+                    if line != '':
+                        spinner.text = "Deploying infrastructure ... " + line.strip('\n')
+
+            spinner.ok(SPINNER_SUCCESS)
+
+    def destroy(self) -> None:
+        """
+        Wrap a call to terraform destroy while showing stdout on a spinner
+        """
+
+        with yaspin(SPINNER_MODEL) as spinner:
+            for line in self.infra.destroy():
+                if line != '':
+                    spinner.text = "Destroying infrastructure ... " + line.strip('\n')
+
+            spinner.ok(SPINNER_SUCCESS)
