@@ -35,11 +35,12 @@ class AzureAKS(Resource, ClusterResource):
             location=azure_config.location,
             resource_group_name=resource_group.name,
             dns_prefix='ctf',
+
             default_node_pool=[KubernetesClusterDefaultNodePool(
                 name='default',
                 node_count=azure_config.node_count,
                 vm_size=azure_config.vm_size,
-                enable_auto_scaling=True
+                enable_auto_scaling=False
             )],
 
             network_profile=[KubernetesClusterNetworkProfile(

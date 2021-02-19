@@ -188,29 +188,34 @@ class TfHelpers:
         Wrap call to terraform plan and show result on spinner
         """
 
-        with yaspin(SPINNER_MODEL, text="Planning infrastructure ...") as spinner:
-            result = self.infra.plan()
-            if len(result[1]) > 0:
-                spinner.fail(SPINNER_FAIL)
-                print(result[1])
+        text = "Planning infrastructure ..."
+        with yaspin(SPINNER_MODEL, text=text) as spinner:
 
-            else:
+            def handle_line(line: str) -> None:
+                if line != '':
+                    spinner.text = text + line.strip('\n')
+
+            exit_code, stdout, _ = self.infra.plan(stdout_cb=handle_line)
+
+            if exit_code == 0:
                 spinner.ok(SPINNER_SUCCESS)
-                print(
-                    '\n'.join(findall(r'(.+resource "[^"]+" "[^"]+") \{', result[0])))
+                print('\n'.join(findall(r'(.+resource "[^"]+" "[^"]+") \{', stdout)))
+            else:
+                spinner.fail(SPINNER_FAIL + f'Command exited with code {exit_code}')
 
     def deploy(self) -> None:
         """
         Wrap call to terraform apply while showing stdout on a spinner
         """
 
-        with yaspin(SPINNER_MODEL, text='Deploying infrastructure ... ') as spinner:
+        text = 'Deploying infrastructure ... '
+        with yaspin(SPINNER_MODEL, text=text) as spinner:
 
             def handle_line(line: str) -> None:
                 if line != '':
-                    spinner.text = "Deploying infrastructure ... " + line.strip('\n')
+                    spinner.text = text + line.strip('\n')
 
-            _, _, exit_code = self.infra.apply(stdout_cb=handle_line)
+            exit_code, _, _ = self.infra.apply(stdout_cb=handle_line)
 
             if exit_code == 0:
                 spinner.ok(SPINNER_SUCCESS)
@@ -222,10 +227,16 @@ class TfHelpers:
         Wrap a call to terraform destroy while showing stdout on a spinner
         """
 
-        with yaspin(SPINNER_MODEL) as spinner:
-            for line in self.infra.destroy():
+        text = "Destroying infrastructure ..."
+        with yaspin(SPINNER_MODEL, text=text) as spinner:
+            
+            def handle_line(line: str) -> None:
                 if line != '':
-                    spinner.text = "Destroying infrastructure ... " + \
-                        line.strip('\n')
+                    spinner.text = text + line.strip('\n')
 
-            spinner.ok(SPINNER_SUCCESS)
+            exit_code, _, _ = self.infra.apply(stdout_cb=handle_line)
+
+            if exit_code == 0:
+                spinner.ok(SPINNER_SUCCESS)
+            else:
+                spinner.fail(SPINNER_FAIL + f'Command exited with code {exit_code}')

@@ -84,7 +84,7 @@ def proc_exec(
     args: List[str],
     cwd: Optional[str] = None,
     stdout_cb: Optional[Callable[[str], None]] = None,
-    stderr_cb: Optional[Callable[[str], None]] = None) -> Tuple[str, str, int]:
+    stderr_cb: Optional[Callable[[str], None]] = None) -> Tuple[int, str, str]:
 
     """Helps to handle multiple outputs which result from a process execute
     It can be use to receive multiple output concurrently using callbacks.
@@ -96,8 +96,7 @@ def proc_exec(
     new line emitted on stdout
     :param stderr_cb: Optional callback function which will be called on each
     new line emitted on stderr
-    :return: A tuple which container the complete stdout, stderr buffer and
-    the exit code of the process
+    :return: A tuple which container the exit_code, the stdout and stderr buffer
     """
 
     process = Popen(
@@ -130,8 +129,8 @@ def proc_exec(
 
             key.data(line)
 
-    # Returns (stdout, stderr, exit_code)
-    return stdout_buf.getvalue(), stderr_buf.getvalue(), process.wait()
+    # Returns (exit_code, stdout, stderr)
+    return process.wait(), stdout_buf.getvalue(), stderr_buf.getvalue()
 
 
 def touch(path: str, data=None) -> None:

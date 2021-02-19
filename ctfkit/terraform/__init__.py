@@ -50,18 +50,17 @@ class CtfDeployment(App):
         )
         return process.communicate()
 
-    def plan(self) -> Tuple[str, str]:
+    def plan(self, stdout_cb: Callable[[str], None]) -> Tuple[str, str]:
         """
         Wrap the execution of the terraform plan command
         """
-        process = Popen(
-            ['terraform', 'plan'],
+        command = ['terraform', 'plan']
+        return proc_exec(
+            command,
             cwd=self.outdir,
-            stderr=PIPE,
-            stdout=PIPE,
-            universal_newlines=True
+            stdout_cb=stdout_cb,
+            stderr_cb=lambda line: sys.stderr.write(f'[{" ".join(command)}: STDERR]: {line}')
         )
-        return process.communicate()
 
     def apply(self, stdout_cb: Callable[[str], None]) -> IO[str]:
         """
@@ -72,23 +71,20 @@ class CtfDeployment(App):
             command,
             cwd=self.outdir,
             stdout_cb=stdout_cb,
-            stderr_cb=lambda line: sys.stderr.write(f'[{"".join(command)}: STDERR]: {line}')
+            stderr_cb=lambda line: sys.stderr.write(f'[{" ".join(command)}: STDERR]: {line}')
         )
 
-    def destroy(self) -> IO[str]:
+    def destroy(self, stdout_cb: Callable[[str], None]) -> IO[str]:
         """
         Wrap the execution of the terraform destroy command
         """
-        process = Popen(
-            ['terraform', 'destroy', '-auto-approve'],
+        command = ['terraform', 'destroy', '-auto-approve']
+        return proc_exec(
+            command,
             cwd=self.outdir,
-            stderr=PIPE,
-            stdout=PIPE,
-            universal_newlines=True
+            stdout_cb=stdout_cb,
+            stderr_cb=lambda line: sys.stderr.write(f'[{" ".join(command)}: STDERR]: {line}')
         )
-        assert process.stdout is not None
-
-        return process.stdout
 
 
 class CtfStack(TerraformStack):
