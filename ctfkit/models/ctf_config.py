@@ -83,6 +83,9 @@ class CtfConfig:
         """
         Loads teams list from the disk
         """
+        if self.teams_file is None:
+            return []
+
         with open(self.teams_file) as file_:
             return file_
 

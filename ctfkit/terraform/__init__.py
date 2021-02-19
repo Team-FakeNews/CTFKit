@@ -1,6 +1,6 @@
 import sys
 from subprocess import PIPE, Popen
-from typing import IO, Any, Mapping, Tuple
+from typing import Callable, IO, Any, Mapping, Tuple
 
 from constructs import Construct
 from cdktf import App, TerraformStack
@@ -8,9 +8,11 @@ from cdktf_cdktf_provider_google import GoogleProvider
 from cdktf_cdktf_provider_kubernetes import KubernetesProvider
 from cdktf_cdktf_provider_azurerm import AzurermProvider, AzurermProviderFeatures
 
+from ctfkit.utility import proc_exec
 from ctfkit.models.hosting_provider import HostingProvider
 from ctfkit.models.ctf_config import CtfConfig, DeploymentConfig
 from ctfkit.models import HostingEnvironment
+from .cluster_resource import ClusterResource
 from .challenge_deployment import ChallengeDeployment
 from .azure import AzureAKS
 from .gcp import GcpGKE
@@ -61,20 +63,17 @@ class CtfDeployment(App):
         )
         return process.communicate()
 
-    def apply(self) -> IO[str]:
+    def apply(self, stdout_cb: Callable[[str], None]) -> IO[str]:
         """
         Wrap the execution of the terraform apply command
         """
-        process = Popen(
-            ['terraform', 'apply', '-auto-approve'],
+        command = ['terraform', 'apply', '-auto-approve']
+        return proc_exec(
+            command,
             cwd=self.outdir,
-            stderr=PIPE,
-            stdout=PIPE,
-            universal_newlines=True
+            stdout_cb=stdout_cb,
+            stderr_cb=lambda line: sys.stderr.write(f'[{"".join(command)}: STDERR]: {line}')
         )
-        assert process.stdout is not None
-
-        return process.stdout
 
     def destroy(self) -> IO[str]:
         """
@@ -109,7 +108,7 @@ class CtfStack(TerraformStack):
 
         if self.deployment_config.provider == HostingProvider.GCP:
             cluster = self._declare_gcp_cluster()
-        
+
         elif self.deployment_config.provider == HostingProvider.AZURE:
             cluster = self._declare_azure_cluster()
 
@@ -127,7 +126,7 @@ class CtfStack(TerraformStack):
             ChallengeDeployment(self, challenge_config)
 
 
-    def _declare_gcp_cluster(self) -> GcpGKE:
+    def _declare_gcp_cluster(self) -> ClusterResource:
         """
         Configure Google Cloud Platform's provider with provided credentials
         :private:
@@ -153,7 +152,7 @@ class CtfStack(TerraformStack):
 
         return GcpGKE(self, 'k8s_cluster', self.deployment_config.gcp)
 
-    def _declare_azure_cluster(self) -> AzureAKS:
+    def _declare_azure_cluster(self) -> ClusterResource:
         AzurermProvider(self, HostingProvider.AZURE.value, features=[AzurermProviderFeatures()])
 
         return AzureAKS(self, 'k8s_cluster', self.deployment_config.azure)

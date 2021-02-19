@@ -205,14 +205,17 @@ class TfHelpers:
         """
 
         with yaspin(SPINNER_MODEL, text='Deploying infrastructure ... ') as spinner:
-            stdout = self.infra.apply()
-            if stdout is not None:
-                for line in stdout:
-                    if line != '':
-                        spinner.text = "Deploying infrastructure ... " + \
-                            line.strip('\n')
 
-            spinner.ok(SPINNER_SUCCESS)
+            def handle_line(line: str) -> None:
+                if line != '':
+                    spinner.text = "Deploying infrastructure ... " + line.strip('\n')
+
+            _, _, exit_code = self.infra.apply(stdout_cb=handle_line)
+
+            if exit_code == 0:
+                spinner.ok(SPINNER_SUCCESS)
+            else:
+                spinner.fail(SPINNER_FAIL + f'Command exited with code {exit_code}')
 
     def destroy(self) -> None:
         """

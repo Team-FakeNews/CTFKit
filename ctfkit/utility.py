@@ -3,11 +3,13 @@ conversions, path-related operations, common checks...
 """
 
 import os
+import selectors
 from dataclasses import is_dataclass
-from typing import Any, Generic, Optional, Type, TypeVar
+from io import StringIO
+from subprocess import PIPE, Popen, STDOUT
+from typing import Any, Callable, Generic, Optional, List, Tuple, Type, TypeVar
+
 import validators  # type: ignore
-
-
 from click import Path, Parameter
 from click.core import Context
 from marshmallow.schema import Schema
@@ -76,6 +78,60 @@ def get_current_path() -> str:
     :rtype: str
     """
     return os.path.abspath(".")
+
+
+def proc_exec(
+    args: List[str],
+    cwd: Optional[str] = None,
+    stdout_cb: Optional[Callable[[str], None]] = None,
+    stderr_cb: Optional[Callable[[str], None]] = None) -> Tuple[str, str, int]:
+
+    """Helps to handle multiple outputs which result from a process execute
+    It can be use to receive multiple output concurrently using callbacks.
+    Or it can be used to read outputs after the process completion.
+
+    :param args: Process and its arguments, as if you were using Popen
+    :param cwd: Optional direction where to run the process from
+    :param stdout_cb: Optional callback function which will be called on each
+    new line emitted on stdout
+    :param stderr_cb: Optional callback function which will be called on each
+    new line emitted on stderr
+    :return: A tuple which container the complete stdout, stderr buffer and
+    the exit code of the process
+    """
+
+    process = Popen(
+        args,
+        cwd=cwd,
+        stderr=PIPE,
+        stdout=PIPE,
+        universal_newlines=True
+    )
+
+    selector = selectors.DefaultSelector()
+    selector.register(process.stdout, selectors.EVENT_READ, stdout_cb)
+    selector.register(process.stderr, selectors.EVENT_READ, stderr_cb)
+
+    # Create buffer to accumulates outputs
+    stdout_buf = StringIO()
+    stderr_buf = StringIO()
+
+    while process.poll() is None:
+        events = selector.select()
+        for key, _ in events:
+            line = key.fileobj.readline()
+
+            if key.fileobj is process.stdout:
+                stdout_buf.write(line)
+            elif key.fileobj is process.stderr:
+                stderr_buf.write(line)
+            else:
+                raise Exception('Unexpected error : unable to determine the corresponding output')
+
+            key.data(line)
+
+    # Returns (stdout, stderr, exit_code)
+    return stdout_buf.getvalue(), stderr_buf.getvalue(), process.wait()
 
 
 def touch(path: str, data=None) -> None:

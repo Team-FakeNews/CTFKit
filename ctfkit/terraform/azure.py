@@ -53,5 +53,13 @@ class AzureAKS(Resource, ClusterResource):
         )
 
     @property
-    def cluster_ca_certificate(self) -> TerraformOutput:
-        return self.cluster.kube_config.cluster_ca_certificate
+    def cluster_ca_certificate(self) -> str:
+        return self.cluster.kube_config('0').cluster_ca_certificate
+
+    @property
+    def client_key(self) -> str:
+        return self.cluster.kube_config('0').client_key
+
+    @property
+    def client_certificate(self) -> str:
+        return self.cluster.kube_config('0').client_certificate
