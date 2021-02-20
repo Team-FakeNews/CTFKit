@@ -1,4 +1,4 @@
-import git
+import git  # type: ignore
 from os import getcwd
 from os.path import join
 from re import findall
