@@ -5,6 +5,8 @@ conversions, path-related operations, common checks...
 import os
 from dataclasses import is_dataclass
 from typing import Any, Generic, Optional, Type, TypeVar
+import validators  # type: ignore
+
 
 from click import Path, Parameter
 from click.core import Context
@@ -12,7 +14,6 @@ from marshmallow.schema import Schema
 from marshmallow_dataclass import class_schema
 from yaml import load
 from yaml.loader import SafeLoader
-
 
 
 ClassType = TypeVar('ClassType')
@@ -68,7 +69,8 @@ class ConfigLoader(Path, Generic[ClassType]):
 
 
 def get_current_path() -> str:
-    """Returns the current path in the system
+    """Use getcwd() from os instead
+    Returns the current path in the system
 
     :return: The path of the current directory in the system
     :rtype: str
@@ -109,6 +111,18 @@ def mkdir(path: str) -> None:
         except OSError as error:
             print(error)
             raise error
+
+
+def is_slug(string: str) -> bool:
+    """Checks if the given string is in a slug format
+
+    :param string: The string to check
+    """
+    if not validators.slug(string):
+        print(f"'{string}' is not valid. You must supply a slug-formatted string")
+        return False
+
+    return True
 
 
 def check_installation() -> None:

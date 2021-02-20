@@ -1,14 +1,16 @@
+from git import Repo
 from os import getcwd
 from os.path import join
 from re import findall
+import sys
 
 import click
 from click.core import Context
 from yaspin import yaspin  # type: ignore
 
 from ctfkit.constants import SPINNER_SUCCESS, SPINNER_FAIL, SPINNER_MODEL
-from ctfkit.models import CtfConfig, HostingEnvironment
-from ctfkit.utility import ConfigLoader
+from ctfkit.models import CtfConfig, HostingEnvironment, HostingProvider
+from ctfkit.utility import ConfigLoader, mkdir, touch, is_slug
 from ctfkit.terraform import CtfDeployment
 
 
@@ -27,7 +29,7 @@ def cli(context: Context, config: CtfConfig):
 
 @cli.command('init')
 @click.option("-n", "--ctf-name", type=str, prompt=True)
-@click.option('-p', '--provider', prompt=True, 
+@click.option('-p', '--provider', prompt=True,
               type=click.Choice(list(map(lambda e: e.value, HostingProvider))))
 def init(ctf_name: str, provider: str) -> None:
     """
@@ -37,10 +39,10 @@ def init(ctf_name: str, provider: str) -> None:
     :param provider: The provider which will host the CTF
     """
     # Check if the given name is valid
-    if not check_ctf_name(ctf_name):
+    if not is_slug(ctf_name):
         sys.exit(1)
 
-    path = get_current_path()
+    path = getcwd()
     ctf_path = join(path, ctf_name)
 
     # Create the CTF's directory
@@ -195,7 +197,8 @@ class TfHelpers:
 
             else:
                 spinner.ok(SPINNER_SUCCESS)
-                print('\n'.join(findall(r'(.+resource "[^"]+" "[^"]+") \{', result[0])))
+                print(
+                    '\n'.join(findall(r'(.+resource "[^"]+" "[^"]+") \{', result[0])))
 
     def deploy(self) -> None:
         """
@@ -207,7 +210,8 @@ class TfHelpers:
             if stdout is not None:
                 for line in stdout:
                     if line != '':
-                        spinner.text = "Deploying infrastructure ... " + line.strip('\n')
+                        spinner.text = "Deploying infrastructure ... " + \
+                            line.strip('\n')
 
             spinner.ok(SPINNER_SUCCESS)
 
@@ -219,6 +223,7 @@ class TfHelpers:
         with yaspin(SPINNER_MODEL) as spinner:
             for line in self.infra.destroy():
                 if line != '':
-                    spinner.text = "Destroying infrastructure ... " + line.strip('\n')
+                    spinner.text = "Destroying infrastructure ... " + \
+                        line.strip('\n')
 
             spinner.ok(SPINNER_SUCCESS)
