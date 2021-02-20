@@ -1,4 +1,4 @@
-from git import Repo
+import git
 from os import getcwd
 from os.path import join
 from re import findall
@@ -49,7 +49,7 @@ def init(ctf_name: str, provider: str) -> None:
     mkdir(ctf_path)
 
     # Init the CTF git repo
-    repo = Repo.init(ctf_path)
+    repo = git.Repo.init(ctf_path)
 
     # One CTF directory will be like so:
     # /ctf_name/
