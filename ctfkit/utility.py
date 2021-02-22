@@ -4,6 +4,9 @@ conversions, path-related operations, common checks...
 
 import os
 import selectors
+import re
+import json
+from io import StringIO
 from dataclasses import is_dataclass
 from io import StringIO
 from subprocess import PIPE, Popen, STDOUT
@@ -14,7 +17,7 @@ from click import Path, Parameter
 from click.core import Context
 from marshmallow.schema import Schema
 from marshmallow_dataclass import class_schema
-from yaml import load
+import yaml
 from yaml.loader import SafeLoader
 
 
@@ -23,7 +26,7 @@ ClassType = TypeVar('ClassType')
 
 class ConfigLoader(Path, Generic[ClassType]):
     """
-    Utility class to which parse, validate, and do marshmalling from a yaml
+    Utility class to which parse, validate, and do marshmalling from a yaml/yml/json
     file to the specified model class. The model must have the @dataclass
     decorator.
     The dataclass should carefully declare every attributes types which will
@@ -31,6 +34,7 @@ class ConfigLoader(Path, Generic[ClassType]):
 
     :param base_cls: The dataclass which represent the yaml config to import
     """
+    EXTENSIONS: List[str] = ['yaml', 'yml', 'json']
     base_cls: Type[ClassType]
 
     def __init__(self, base_cls: Type[ClassType]) -> None:
@@ -40,6 +44,27 @@ class ConfigLoader(Path, Generic[ClassType]):
             raise ValueError('The base_cls argument my be a dataclass')
 
         self.base_cls = base_cls
+
+    def _try_load_file(self, file_path: str, extension: str) -> Optional[dict]:
+        """
+        Try to read file content with the specified extension
+        :param file_path: Relative or absolute path to the file (its extension must be omitted)
+        :param extension: The file extension to try to parse
+        :returns: If the file doesn't exist None is returned, else the parsed object
+        """
+
+        try:
+            file_content = open(f'{file_path}.{extension}').read()
+        except OSError:
+            return None
+
+        if extension in ['yaml', 'yml']:
+            return yaml.load(file_content, SafeLoader)
+
+        if extension == 'json':
+            return json.loads(file_content)
+
+        raise Exception(f'Unsupported extension {extension}')
 
     def convert(
             self,
@@ -54,18 +79,25 @@ class ConfigLoader(Path, Generic[ClassType]):
         :return: A new instance of the dataclass filled with attributes from
         the yaml file
         """
-        # Load raw config using the default implementation from click
-        config_content: str = super().convert(value, param, ctx)
 
-        # Parse YAML
-        with open(config_content) as file_hander:
-            config_yaml = load(file_hander, Loader=SafeLoader)
+        # Extract the requested file
+        filename, ext = os.path.splitext(value)
+        if ext[1:] in self.EXTENSIONS: # If a supported extension is already provided
+            raw_config = self._try_load_file(filename, ext[1:])
+
+        else: # Else try to append .yaml/.yml/.json to find the requested file
+            raw_config = next(
+                config for config in map(
+                    lambda extension: self._try_load_file(value, extension),
+                    self.EXTENSIONS
+                ) if config is not None
+            )
 
         # Generate the marshmallow schema using the dataclass typings
         config_schema: Schema = class_schema(self.base_cls)()
 
         # Cast the dict to a real CtfConfig instance
-        config = config_schema.load(config_yaml)
+        config = config_schema.load(raw_config)
 
         return config
 
@@ -81,10 +113,10 @@ def get_current_path() -> str:
 
 
 def proc_exec(
-    args: List[str],
-    cwd: Optional[str] = None,
-    stdout_cb: Optional[Callable[[str], None]] = None,
-    stderr_cb: Optional[Callable[[str], None]] = None) -> Tuple[int, str, str]:
+        args: List[str],
+        cwd: Optional[str] = None,
+        stdout_cb: Optional[Callable[[str], None]] = None,
+        stderr_cb: Optional[Callable[[str], None]] = None) -> Tuple[int, str, str]:
 
     """Helps to handle multiple outputs which result from a process execute
     It can be use to receive multiple output concurrently using callbacks.
@@ -127,7 +159,8 @@ def proc_exec(
             else:
                 raise Exception('Unexpected error : unable to determine the corresponding output')
 
-            key.data(line)
+            if line != '':
+                key.data(line)
 
     # Returns (exit_code, stdout, stderr)
     return process.wait(), stdout_buf.getvalue(), stderr_buf.getvalue()

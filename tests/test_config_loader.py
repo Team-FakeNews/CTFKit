@@ -1,8 +1,4 @@
-from time import sleep
-import logging
 from tempfile import NamedTemporaryFile
-from shutil import rmtree
-from typing import IO
 from unittest import main, TestCase
 
 from click.exceptions import BadParameter
@@ -20,13 +16,13 @@ class ExampleDataclass:
 class TestConfigLoader(TestCase):
 
     def create_temp(self, content: str) -> str:
-        config_file = NamedTemporaryFile()
+        config_file = NamedTemporaryFile(suffix='.yaml')
         config_file.write(bytes(content, 'utf8'))
         config_file.flush()
 
         return config_file
 
-    def test_nominal(self):
+    def test_parse_yaml(self):
         with self.create_temp('a: "str_value"\nb: 10\n') as config_file:
             instance: ExampleDataclass = ConfigLoader(
                 ExampleDataclass).convert(config_file.name)
@@ -34,6 +30,9 @@ class TestConfigLoader(TestCase):
             self.assertIsInstance(instance, ExampleDataclass)
             self.assertEqual(instance.a, "str_value")
             self.assertEqual(instance.b, 10)
+
+    def test_parse_json(self):
+        pass
 
     def test_extraneous_member(self):
         with self.create_temp('a: "str_value"\nb: 10\nc: "hihi"\n') as config_file:
