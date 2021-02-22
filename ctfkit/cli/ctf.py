@@ -208,12 +208,11 @@ class TfHelpers:
         Wrap call to terraform apply while showing stdout on a spinner
         """
 
-        text = 'Deploying infrastructure ... '
-        with yaspin(SPINNER_MODEL, text=text) as spinner:
+        with yaspin(SPINNER_MODEL, text='Starting terraform ...') as spinner:
 
             def handle_line(line: str) -> None:
                 if line != '':
-                    spinner.text = text + line.strip('\n')
+                    spinner.text = 'Deploying infrastructure : ' + line.strip('\n')
 
             exit_code, _, _ = self.infra.apply(stdout_cb=handle_line)
 
