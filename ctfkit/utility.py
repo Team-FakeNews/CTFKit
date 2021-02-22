@@ -54,7 +54,8 @@ class ConfigLoader(Path, Generic[ClassType]):
         """
 
         try:
-            file_content = open(f'{file_path}.{extension}').read()
+            with open(f'{file_path}.{extension}') as file_descriptor:
+                file_content = file_descriptor.read()
         except OSError:
             return None
 
@@ -86,12 +87,16 @@ class ConfigLoader(Path, Generic[ClassType]):
             raw_config = self._try_load_file(filename, ext[1:])
 
         else: # Else try to append .yaml/.yml/.json to find the requested file
-            raw_config = next(
-                config for config in map(
-                    lambda extension: self._try_load_file(value, extension),
-                    self.EXTENSIONS
-                ) if config is not None
-            )
+            try:
+                raw_config = next(
+                    config for config in map(
+                        lambda extension: self._try_load_file(value, extension),
+                        self.EXTENSIONS
+                    ) if config is not None
+                )
+            except StopIteration:
+                raise ValueError('Unable to find any file'
+                                f' matching {filename}.{ext if ext != "" else "/".join(self.EXTENSIONS)}')
 
         # Generate the marshmallow schema using the dataclass typings
         config_schema: Schema = class_schema(self.base_cls)()
