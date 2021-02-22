@@ -1,6 +1,6 @@
 from constructs import Construct
 from cdktf import Resource, TerraformOutput
-from cdktf_cdktf_provider_azurerm import KubernetesCluster, KubernetesClusterAddonProfile, KubernetesClusterAddonProfileKubeDashboard, KubernetesClusterDefaultNodePool, KubernetesClusterNetworkProfile, ResourceGroup
+from cdktf_cdktf_provider_azurerm import KubernetesCluster, KubernetesClusterIdentity, KubernetesClusterServicePrincipal, KubernetesClusterAddonProfile, KubernetesClusterAddonProfileKubeDashboard, KubernetesClusterDefaultNodePool, KubernetesClusterNetworkProfile, ResourceGroup
 
 from ctfkit.models.ctf_config import AzureConfig
 from .cluster_resource import ClusterResource
@@ -43,6 +43,10 @@ class AzureAKS(Resource, ClusterResource):
                 enable_auto_scaling=False
             )],
 
+            identity=[KubernetesClusterIdentity(
+                type="SystemAssigned"
+            )],
+
             network_profile=[KubernetesClusterNetworkProfile(
                 network_plugin="kubenet",
                 load_balancer_sku="Standard"
@@ -52,6 +56,10 @@ class AzureAKS(Resource, ClusterResource):
                 kube_dashboard=[KubernetesClusterAddonProfileKubeDashboard(enabled=True)]
             )]
         )
+
+    @property
+    def endpoint(self) -> str:
+        return self.cluster.fqdn
 
     @property
     def cluster_ca_certificate(self) -> str:
