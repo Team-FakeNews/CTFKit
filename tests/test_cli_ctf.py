@@ -6,7 +6,6 @@ from click.testing import CliRunner
 from ctfkit.cli import root_cli
 
 
-
 class TestCliCtf(TestCase):
     runner = CliRunner()
 
@@ -37,7 +36,7 @@ deployments:
 
     def test_plan(self):
         with self.runner.isolated_filesystem():
-            with open('ctf.yaml', 'w') as config:
+            with open('ctf.config.yml', 'w') as config:
                 config.write(self.VALID_CONFIG)
                 config.close()
 
@@ -48,6 +47,3 @@ deployments:
             self.assertEqual(result.exit_code, 0)
 
             self.assertTrue(path.exists('.tfout'))
-
-if __name__ == '__main__':
-    main()
