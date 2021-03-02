@@ -131,9 +131,8 @@ def is_url(string: str) -> bool:
     :param url: The URL to check
     :return: True if the given URL is valid, False else
     """
-    if not validators.url(url):
-        print(f"{url} is not a valid URL. You must supply a valid URL for a "
-              "challenge import (http:// or https://)")
+    if not validators.url(string):
+        print(f"{string} is not a valid URL. You must supply a valid URL (http:// or https://)")
         return False
 
     return True

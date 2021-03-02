@@ -1,6 +1,7 @@
 # TODO: use a proper function to retrieve docker from env (declare in utility.py?)
 import sys
 from os import getcwd
+from os.path import join
 
 import click
 import docker  # type: ignore
@@ -40,7 +41,7 @@ def run(challenge: str) -> None:
         sys.exit(1)
 
     # Build the docker image
-    tmp_challenge_path = os.path.join(getcwd(), challenge)
+    tmp_challenge_path = join(getcwd(), challenge)
     image_name = f"ctfkit:{challenge}"
     with yaspin(SPINNER_MODEL, text=f"Starting challenge '{challenge}'", color="cyan") as spinner:
         try:
