@@ -125,6 +125,20 @@ def is_slug(string: str) -> bool:
     return True
 
 
+def is_url(string: str) -> bool:
+    """Check if a given string is a valid URL
+
+    :param url: The URL to check
+    :return: True if the given URL is valid, False else
+    """
+    if not validators.url(url):
+        print(f"{url} is not a valid URL. You must supply a valid URL for a "
+              "challenge import (http:// or https://)")
+        return False
+
+    return True
+
+
 def check_installation() -> None:
     """Checks the installation of CTF Kit on system (ie. are all files here?)
     For the moment, only the challenges/ directory is checked
