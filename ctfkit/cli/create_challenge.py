@@ -8,27 +8,28 @@ challenge_2/
 /path/to/ctf-project/
     # Actual directory of the CTF
     ctf/
-        ctf.yml # The CTF's configuration
+        ctf.yaml # The CTF's configuration
         # Will contain all the challenges decalred in the config file once the
         # CTF is started
         challenges/
 """
+from os import getcwd, mkdir
 from os.path import join
 from git import Repo  # type: ignore
 
-from ctfkit.utility import get_current_path, mkdir, touch
+from ctfkit.utility import touch
 
 
 def new_challenge(name: str) -> None:
     """Create a new challenge git repo for CTF Kit
     Each challenge is a git repo in the `your_project/dev/` directory, which
     CTF Kit will use to update your challenges
-    TODO: write content of challenge.yml on creation
+    TODO: write content of challenge.yaml on creation
 
     :param name: The name of the challenge
     :type name: str
     """
-    path = get_current_path()
+    path = getcwd()
     # Challenge's path will be /current/directory/challenge_name
     # TODO: But we will want to append a unique id to it
     challenge_path = join(path, name)
@@ -45,14 +46,14 @@ def new_challenge(name: str) -> None:
         files/              # files for a challenge (image, text file given to
                             # players)
         src/                # source code of challenge
-        challenge.yml       # config file for the challenge
+        challenge.yaml      # config file for the challenge
         flag                # text file containing the flag
         Dockerfile          # for production
         docker-compose.yml  # for testing locally
     """
     # We initiate the challenge's directory with default files
     default_dirs = ["files", "src"]
-    default_files = ["challenge.yml", "flag", "Dockerfile", "docker-compose.yml"]
+    default_files = ["challenge.yaml", "flag", "Dockerfile", "docker-compose.yml"]
 
     # Create all directories with .gitignore files to preserve them with commit
     for directory in default_dirs:
@@ -76,9 +77,10 @@ def add_challenge(url: str) -> None:
     """Import a challenge with its URL
 
     :param url: The URL of the challenge (CTF Kit sub-module)
-    :type url: str
     """
-    path = get_current_path()
+    # TODO: check if the given URL is a local path or not to copy the files
+    # without clonning a repo
+    path = getcwd()
     # Challenge's path will be /current/directory/challenge_name
     target_dir = join(path, url.split('/')[-1])
     print(f"Challenge {url} will be imported in {target_dir}")

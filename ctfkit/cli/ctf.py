@@ -14,17 +14,10 @@ from ctfkit.utility import ConfigLoader, mkdir, touch, is_slug
 from ctfkit.terraform import CtfDeployment
 
 
-pass_config = click.make_pass_decorator(CtfConfig)
-
-
 @click.group()
-@click.option("--config",
-              type=ConfigLoader(CtfConfig),
-              default="ctf.yaml")
 @click.pass_context
-def cli(context: Context, config: CtfConfig):
+def cli(context: Context):
     """Root group for the ctf command"""
-    context.obj = config
 
 
 @cli.command('init')
@@ -87,7 +80,9 @@ def init(ctf_name: str, provider: str) -> None:
 @cli.command('plan')
 @click.argument('environment', required=True,
                 type=click.Choice(map(lambda e: e.value, HostingEnvironment)))
-@pass_config
+@click.option("--config",
+              type=ConfigLoader(CtfConfig),
+              default="ctf.yaml")
 def plan(config: CtfConfig, environment: str):
     """
     Generate terraform configuration files
@@ -110,7 +105,9 @@ def plan(config: CtfConfig, environment: str):
 @cli.command('deploy')
 @click.argument('environment', required=True,
                 type=click.Choice(map(lambda e: e.value, HostingEnvironment)))
-@pass_config
+@click.option("--config",
+              type=ConfigLoader(CtfConfig),
+              default="ctf.yaml")
 def deploy(config: CtfConfig, environment: str):
     """
     Generate terraform configuration files
@@ -133,7 +130,9 @@ def deploy(config: CtfConfig, environment: str):
 @cli.command('destroy')
 @click.argument('environment', required=True,
                 type=click.Choice(map(lambda e: e.value, HostingEnvironment)))
-@pass_config
+@click.option("--config",
+              type=ConfigLoader(CtfConfig),
+              default="ctf.yaml")
 def destroy(config: CtfConfig, environment: str):
     """
     Generate terraform configuration files
