@@ -56,11 +56,13 @@ def run(challenge: str) -> None:
                 auto_remove=True,
                 detach=True,
                 name=f"ctfkit_{challenge}")
-            spinner.ok(f"{SPINNER_SUCCESS} Container '{image_name}' is running!")
+            spinner.ok(
+                f"{SPINNER_SUCCESS} Container '{image_name}' is running!")
         except Exception as error:
             # TODO: use better error handling to display custom message
             print(error)
-            spinner.fail(f"{SPINNER_FAIL} Error while building/running the Docker image")
+            spinner.fail(
+                f"{SPINNER_FAIL} Error while building/running the Docker image")
             sys.exit(1)
 
 
@@ -95,10 +97,12 @@ def stop(challenge: str) -> None:
             client.images.remove(
                 image=container.image.id,
                 force=True)
-            spinner.ok(f"{SPINNER_SUCCESS} Image '{container_name}' successfully stopped and removed!")
+            spinner.ok(
+                f"{SPINNER_SUCCESS} Image '{container_name}' successfully stopped and removed!")
         except Exception as error:
             print(error)
-            spinner.fail(f"{SPINNER_FAIL} Error, unable to stop the Docker container '{container_name}'")
+            spinner.fail(
+                f"{SPINNER_FAIL} Error, unable to stop the Docker container '{container_name}'")
             sys.exit(1)
 
 
