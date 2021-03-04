@@ -4,9 +4,9 @@ from os.path import join
 from pprint import pformat
 from typing import List, Optional
 from dataclasses import dataclass, field
-from click.exceptions import BadParameter
 
 from slugify import slugify
+from click.exceptions import BadParameter
 
 from ctfkit.challenge import Challenge
 from .hosting_environment import HostingEnvironment

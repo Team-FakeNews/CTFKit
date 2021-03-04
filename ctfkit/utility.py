@@ -8,17 +8,16 @@ import re
 import json
 from io import StringIO
 from dataclasses import is_dataclass
-from io import StringIO
 from subprocess import PIPE, Popen, STDOUT
 from typing import Any, Callable, Generic, Optional, List, Tuple, Type, TypeVar
 
 import validators  # type: ignore
+import yaml
+from yaml.loader import SafeLoader
 from click import Path, Parameter
 from click.core import Context
 from marshmallow.schema import Schema
 from marshmallow_dataclass import class_schema
-import yaml
-from yaml.loader import SafeLoader
 
 
 ClassType = TypeVar('ClassType')
