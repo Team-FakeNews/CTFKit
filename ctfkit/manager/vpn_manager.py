@@ -50,20 +50,15 @@ class VPNManager:
 
                 with open(join('vpn_configs', team.name, member.name, 'ctf.conf'), 'w') as file_handler:
                     file_handler.write(f"""[Interface]
-# Adresse IP du client à l'intérieur du VPN
 Address = 10.8.8.{index+2}/32
-# Clef privée du client
 PrivateKey = {b64encode(bytes(member.private_key)).decode()}
 DNS = 10.8.8.1
-# ==== Configuration liée au serveur ====
+
+# ==== Server configuration ====
+
 [Peer]
-# Clef publique du du serveur
 PublicKey = {b64encode(bytes(team.private_key.public_key)).decode()}
-# Adresse et port du serveur
 Endpoint = {servers_endpoints[team.name]}
-# Range d'adresses IP qui doivent être routées à travers le VPN
 AllowedIPs = 10.8.8.1/32, 10.0.0.0/16
-# Et pour finir, le keepalive pour éviter d'avoir des soucis
-# si le client se trouve derrière un routeur NAT
 PersistentKeepalive = 25
 """)

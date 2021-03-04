@@ -1,6 +1,5 @@
 import git  # type: ignore
 import sys
-from ctfkit.manager.vpn_manager import VPNManager
 from os import getcwd
 from os.path import join
 from re import findall
@@ -16,6 +15,7 @@ from ctfkit.constants import SPINNER_SUCCESS, SPINNER_FAIL, SPINNER_MODEL
 from ctfkit.models import CtfConfig, HostingEnvironment, HostingProvider
 from ctfkit.utility import ConfigLoader, mkdir, touch, is_slug
 from ctfkit.terraform import CtfDeployment
+from ctfkit.manager.vpn_manager import VPNManager
 
 
 pass_config = click.make_pass_decorator(CtfConfig)
