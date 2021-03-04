@@ -2,7 +2,7 @@ kind: ctf
 name: fakectf
 challenges:
     - ./challs/01-test
-teams_file: ./teams.json
+teams_file: ./staff.json
 deployments:
     -   environment: testing
         provider: azure

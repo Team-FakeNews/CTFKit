@@ -3,9 +3,9 @@ from cdktf import Resource, TerraformOutput
 from cdktf_cdktf_provider_azurerm import KubernetesCluster, KubernetesClusterIdentity, KubernetesClusterServicePrincipal, KubernetesClusterAddonProfile, KubernetesClusterAddonProfileKubeDashboard, KubernetesClusterDefaultNodePool, KubernetesClusterNetworkProfile, ResourceGroup
 
 from ctfkit.models.ctf_config import AzureConfig
-from .cluster_resource import ClusterResource
+from .cluster_resource_interface import K8sClusterResource
 
-class AzureAKS(Resource, ClusterResource):
+class AzureAKS(Resource, K8sClusterResource):
     """
     Manage an Azure Kubernetes Service to build up our cluster
     Some settings can be managed by the user through the provided configuration

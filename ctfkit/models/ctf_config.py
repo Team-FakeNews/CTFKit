@@ -1,4 +1,5 @@
-from ctfkit.models.teams import Team
+from ctfkit.utility import ConfigLoader
+from ctfkit.models.team import Team
 from os.path import join
 from pprint import pformat
 from typing import List, Optional
@@ -68,6 +69,7 @@ class CtfConfig:
     kind: str
     name: str
     teams_file: Optional[str]
+    teams: Optional[Team]
     deployments: List[DeploymentConfig] = field(default_factory=list)
     challenges: List[str] = field(default_factory=list)
 
@@ -79,6 +81,9 @@ class CtfConfig:
             for config_path in self.challenges
         ]
 
+        if self.teams_file is not None:
+            self.teams = ConfigLoader(Team).convert(self.teams_file)
+
     def get_teams(self) -> List[Team]:
         """
         Loads teams list from the disk
@@ -86,8 +91,8 @@ class CtfConfig:
         if self.teams_file is None:
             return []
 
-        with open(self.teams_file) as file_:
-            return file_
+        with open(self.teams_file) as file_handler:
+            return file_handler
 
     def get_slug(self) -> str:
         """

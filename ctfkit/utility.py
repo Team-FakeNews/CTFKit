@@ -96,13 +96,16 @@ class ConfigLoader(Path, Generic[ClassType]):
                 )
             except StopIteration:
                 raise ValueError('Unable to find any file'
-                                f' matching {filename}.{ext if ext != "" else "/".join(self.EXTENSIONS)}')
+                                 f' matching {filename}.{ext if ext != "" else "/".join(self.EXTENSIONS)}')
 
         # Generate the marshmallow schema using the dataclass typings
         config_schema: Schema = class_schema(self.base_cls)()
 
         # Cast the dict to a real CtfConfig instance
-        config = config_schema.load(raw_config)
+        if isinstance(raw_config, list):
+            config = [ config_schema.load(element) for element in raw_config ]
+        else:
+            config = config_schema.load(raw_config)
 
         return config
 
@@ -164,7 +167,7 @@ def proc_exec(
             else:
                 raise Exception('Unexpected error : unable to determine the corresponding output')
 
-            if line != '':
+            if line != '' and key.data is not None:
                 key.data(line)
 
     # Returns (exit_code, stdout, stderr)

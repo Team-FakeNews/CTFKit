@@ -19,6 +19,7 @@ pylint-enums = "*"
 cdktf-cdktf-provider-azurerm = "*"
 cdktf-cdktf-provider-kubernetes = "*"
 pyyaml = "*"
+pynacl = "*"
 
 [dev-packages]
 mypy = "*"

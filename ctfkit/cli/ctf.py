@@ -1,17 +1,24 @@
 import git  # type: ignore
+import sys
+from ctfkit.manager.vpn_manager import VPNManager
 from os import getcwd
 from os.path import join
 from re import findall
-import sys
+from base64 import b64encode, b64decode
+from typing import Optional
 
 import click
 from click.core import Context
 from yaspin import yaspin  # type: ignore
+from nacl.public import PrivateKey
 
 from ctfkit.constants import SPINNER_SUCCESS, SPINNER_FAIL, SPINNER_MODEL
 from ctfkit.models import CtfConfig, HostingEnvironment, HostingProvider
 from ctfkit.utility import ConfigLoader, mkdir, touch, is_slug
 from ctfkit.terraform import CtfDeployment
+
+
+pass_config = click.make_pass_decorator(CtfConfig)
 
 
 @click.group()
@@ -92,8 +99,11 @@ def plan(config: CtfConfig, environment: str):
     environment_e = next(
         elem for elem in HostingEnvironment if elem.value == environment)
 
-    # Declare out terraform stack
-    app = CtfDeployment(config, environment_e, outdir=join(getcwd(), '.tfout'))
+    # Prepare clients private keys
+    VPNManager.generate_clients_private(config.teams)
+
+    # Declare our terraform stack
+    app = create_deployment(config, environment_e)
 
     helpers = TfHelpers(app)
 
@@ -118,13 +128,20 @@ def deploy(config: CtfConfig, environment: str):
     environment_e = next(
         elem for elem in HostingEnvironment if elem.value == environment)
 
-    # Declare out terraform stack
-    app = CtfDeployment(config, environment_e, outdir=join(getcwd(), '.tfout'))
+    # Prepare clients private keys
+    VPNManager.generate_clients_private(config.teams)
+
+    # Declare our terraform stack
+    app = CtfDeployment(config, environment_e, outdir=join(getcwd(), '.tfout', environment))
     helpers = TfHelpers(app)
 
     helpers.synth()
     helpers.init()
     helpers.deploy()
+
+    servers = app.get_outputs()['servers']['value']
+
+    VPNManager.generate_clients_config(config.teams, servers)
 
 
 @cli.command('destroy')
@@ -142,8 +159,11 @@ def destroy(config: CtfConfig, environment: str):
     # Find the requested environment
     environment_e = next(
         elem for elem in HostingEnvironment if elem.value == environment)
+    
+    # Prepare clients private keys
+    VPNManager.generate_clients_private(config.teams)
 
-    app = CtfDeployment(config, environment_e, outdir=join(getcwd(), '.tfout'))
+    app = CtfDeployment(config, environment_e, outdir=join(getcwd(), '.tfout', environment))
 
     helpers = TfHelpers(app)
 
@@ -151,6 +171,13 @@ def destroy(config: CtfConfig, environment: str):
     helpers.init()
     helpers.destroy()
 
+
+
+def create_deployment(config: CtfConfig, environment: HostingEnvironment) -> CtfDeployment:
+    outdir = join(getcwd(), '.tfout', environment.value)
+    mkdir(outdir)
+
+    return CtfDeployment(config, environment, outdir=outdir)
 
 class TfHelpers:
     """
@@ -228,12 +255,12 @@ class TfHelpers:
 
         text = "Destroying infrastructure ..."
         with yaspin(SPINNER_MODEL, text=text) as spinner:
-            
+
             def handle_line(line: str) -> None:
                 if line != '':
                     spinner.text = text + line.strip('\n')
 
-            exit_code, _, _ = self.infra.apply(stdout_cb=handle_line)
+            exit_code, _, _ = self.infra.destroy(stdout_cb=handle_line)
 
             if exit_code == 0:
                 spinner.ok(SPINNER_SUCCESS)
