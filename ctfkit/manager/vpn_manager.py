@@ -46,7 +46,6 @@ class VPNManager:
     def generate_clients_config(teams: List[Team], servers_endpoints: Dict[str, str]):
         for team in teams:
             for index, member in enumerate(team.members):
-                print(servers_endpoints)
 
                 with open(join('vpn_configs', team.name, member.name, 'ctf.conf'), 'w') as file_handler:
                     file_handler.write(f"""[Interface]
