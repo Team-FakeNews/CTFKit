@@ -8,10 +8,10 @@ files:
 containers:
   - image: nginx:latest
     ports:
-      - proto: tcp
-        port: 1337
-      - proto: udp
-        port: 71337
+      - proto: TCP
+        port: 80
+      - proto: UDP
+        port: 31337
 # Not implemented yet:
 # vm:
 #     idk mate but it's for virtual machines

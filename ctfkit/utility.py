@@ -3,17 +3,21 @@ conversions, path-related operations, common checks...
 """
 
 import os
+import selectors
+import re
+import json
+from io import StringIO
 from dataclasses import is_dataclass
-from typing import Any, Generic, Optional, Type, TypeVar
+from subprocess import PIPE, Popen, STDOUT
+from typing import Any, Callable, Generic, Optional, List, Tuple, Type, TypeVar
+
 import validators  # type: ignore
-
-
+import yaml
+from yaml.loader import SafeLoader
 from click import Path, Parameter
 from click.core import Context
 from marshmallow.schema import Schema
 from marshmallow_dataclass import class_schema
-from yaml import load
-from yaml.loader import SafeLoader
 
 
 ClassType = TypeVar('ClassType')
@@ -21,7 +25,7 @@ ClassType = TypeVar('ClassType')
 
 class ConfigLoader(Path, Generic[ClassType]):
     """
-    Utility class to which parse, validate, and do marshmalling from a yaml
+    Utility class to which parse, validate, and do marshmalling from a yaml/yml/json
     file to the specified model class. The model must have the @dataclass
     decorator.
     The dataclass should carefully declare every attributes types which will
@@ -29,6 +33,7 @@ class ConfigLoader(Path, Generic[ClassType]):
 
     :param base_cls: The dataclass which represent the yaml config to import
     """
+    EXTENSIONS: List[str] = ['yaml', 'yml', 'json']
     base_cls: Type[ClassType]
 
     def __init__(self, base_cls: Type[ClassType]) -> None:
@@ -38,6 +43,28 @@ class ConfigLoader(Path, Generic[ClassType]):
             raise ValueError('The base_cls argument my be a dataclass')
 
         self.base_cls = base_cls
+
+    def _try_load_file(self, file_path: str, extension: str) -> Optional[dict]:
+        """
+        Try to read file content with the specified extension
+        :param file_path: Relative or absolute path to the file (its extension must be omitted)
+        :param extension: The file extension to try to parse
+        :returns: If the file doesn't exist None is returned, else the parsed object
+        """
+
+        try:
+            with open(f'{file_path}.{extension}') as file_descriptor:
+                file_content = file_descriptor.read()
+        except OSError:
+            return None
+
+        if extension in ['yaml', 'yml']:
+            return yaml.load(file_content, SafeLoader)
+
+        if extension == 'json':
+            return json.loads(file_content)
+
+        raise Exception(f'Unsupported extension {extension}')
 
     def convert(
             self,
@@ -52,18 +79,32 @@ class ConfigLoader(Path, Generic[ClassType]):
         :return: A new instance of the dataclass filled with attributes from
         the yaml file
         """
-        # Load raw config using the default implementation from click
-        config_content: str = super().convert(value, param, ctx)
 
-        # Parse YAML
-        with open(config_content) as file_hander:
-            config_yaml = load(file_hander, Loader=SafeLoader)
+        # Extract the requested file
+        filename, ext = os.path.splitext(value)
+        if ext[1:] in self.EXTENSIONS: # If a supported extension is already provided
+            raw_config = self._try_load_file(filename, ext[1:])
+
+        else: # Else try to append .yaml/.yml/.json to find the requested file
+            try:
+                raw_config = next(
+                    config for config in map(
+                        lambda extension: self._try_load_file(value, extension),
+                        self.EXTENSIONS
+                    ) if config is not None
+                )
+            except StopIteration:
+                raise ValueError('Unable to find any file'
+                                 f' matching {filename}.{ext if ext != "" else "/".join(self.EXTENSIONS)}')
 
         # Generate the marshmallow schema using the dataclass typings
         config_schema: Schema = class_schema(self.base_cls)()
 
         # Cast the dict to a real CtfConfig instance
-        config = config_schema.load(config_yaml)
+        if isinstance(raw_config, list):
+            config = [ config_schema.load(element) for element in raw_config ]
+        else:
+            config = config_schema.load(raw_config)
 
         return config
 
@@ -76,6 +117,60 @@ def get_current_path() -> str:
     :rtype: str
     """
     return os.path.abspath(".")
+
+
+def proc_exec(
+        args: List[str],
+        cwd: Optional[str] = None,
+        stdout_cb: Optional[Callable[[str], None]] = None,
+        stderr_cb: Optional[Callable[[str], None]] = None) -> Tuple[int, str, str]:
+
+    """Helps to handle multiple outputs which result from a process execute
+    It can be use to receive multiple output concurrently using callbacks.
+    Or it can be used to read outputs after the process completion.
+
+    :param args: Process and its arguments, as if you were using Popen
+    :param cwd: Optional direction where to run the process from
+    :param stdout_cb: Optional callback function which will be called on each
+    new line emitted on stdout
+    :param stderr_cb: Optional callback function which will be called on each
+    new line emitted on stderr
+    :return: A tuple which container the exit_code, the stdout and stderr buffer
+    """
+
+    process = Popen(
+        args,
+        cwd=cwd,
+        stderr=PIPE,
+        stdout=PIPE,
+        universal_newlines=True
+    )
+
+    selector = selectors.DefaultSelector()
+    selector.register(process.stdout, selectors.EVENT_READ, stdout_cb)
+    selector.register(process.stderr, selectors.EVENT_READ, stderr_cb)
+
+    # Create buffer to accumulates outputs
+    stdout_buf = StringIO()
+    stderr_buf = StringIO()
+
+    while process.poll() is None:
+        events = selector.select()
+        for key, _ in events:
+            line = key.fileobj.readline()
+
+            if key.fileobj is process.stdout:
+                stdout_buf.write(line)
+            elif key.fileobj is process.stderr:
+                stderr_buf.write(line)
+            else:
+                raise Exception('Unexpected error : unable to determine the corresponding output')
+
+            if line != '' and key.data is not None:
+                key.data(line)
+
+    # Returns (exit_code, stdout, stderr)
+    return process.wait(), stdout_buf.getvalue(), stderr_buf.getvalue()
 
 
 def touch(path: str, data=None) -> None:

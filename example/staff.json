@@ -1,0 +1,19 @@
+[
+    {
+        "name": "admin",
+        "members": [
+            {
+                "name": "admin-01"
+            },
+            {
+                "name": "admin-02"
+            },
+            {
+                "name": "admin-03"
+            },
+            {
+                "name": "admin-04"
+            }
+        ]
+    }
+]
