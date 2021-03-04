@@ -246,7 +246,7 @@ class TfHelpers:
             if exit_code == 0:
                 spinner.ok(SPINNER_SUCCESS)
             else:
-                spinner.fail(SPINNER_FAIL + f'Command exited with code {exit_code}')
+                spinner.fail(f'{SPINNER_FAIL} Command exited with code {exit_code}')
 
     def destroy(self) -> None:
         """
