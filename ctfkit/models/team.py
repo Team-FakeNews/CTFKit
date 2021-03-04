@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
 
-from nacl.public import PrivateKey, PublicKey
+from nacl.public import PrivateKey, PublicKey  # type: ignore
 
 
 @dataclass

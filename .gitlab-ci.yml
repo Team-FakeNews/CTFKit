@@ -34,9 +34,6 @@ typecheck:
     stage: test
     image: python:3.9-alpine
     before_script:
-        - env
-        - ls -lah
-        - ls -lah .pipenv
         - apk add musl-dev gcc nodejs git
         - pip3 install pipenv
         - pipenv install --dev

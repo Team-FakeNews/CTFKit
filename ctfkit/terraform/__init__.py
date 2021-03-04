@@ -52,7 +52,7 @@ class CtfDeployment(App):
         )
         return process.communicate()
 
-    def plan(self, stdout_cb: Callable[[str], None]) -> Tuple[str, str]:
+    def plan(self, stdout_cb: Callable[[str], None]) -> Tuple[int, str, str]:
         """
         Wrap the execution of the terraform plan command
         """
@@ -64,7 +64,7 @@ class CtfDeployment(App):
             stderr_cb=lambda line: sys.stderr.write(f'[{" ".join(command)}: STDERR]: {line}')
         )
 
-    def apply(self, stdout_cb: Callable[[str], None]) -> IO[str]:
+    def apply(self, stdout_cb: Callable[[str], None]) -> Tuple[int, str, str]:
         """
         Wrap the execution of the terraform apply command
         """
@@ -76,7 +76,7 @@ class CtfDeployment(App):
             stderr_cb=lambda line: sys.stderr.write(f'[{" ".join(command)}: STDERR]: {line}')
         )
 
-    def destroy(self, stdout_cb: Callable[[str], None]) -> IO[str]:
+    def destroy(self, stdout_cb: Callable[[str], None]) -> Tuple[int, str, str]:
         """
         Wrap the execution of the terraform destroy command
         """

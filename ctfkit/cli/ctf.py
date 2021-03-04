@@ -10,7 +10,7 @@ from typing import Optional
 import click
 from click.core import Context
 from yaspin import yaspin  # type: ignore
-from nacl.public import PrivateKey
+from nacl.public import PrivateKey  # type: ignore
 
 from ctfkit.constants import SPINNER_SUCCESS, SPINNER_FAIL, SPINNER_MODEL
 from ctfkit.models import CtfConfig, HostingEnvironment, HostingProvider

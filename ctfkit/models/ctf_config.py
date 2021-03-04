@@ -69,7 +69,7 @@ class CtfConfig:
     kind: str
     name: str
     teams_file: Optional[str]
-    teams: Optional[Team]
+    teams: Optional[List[Team]]
     deployments: List[DeploymentConfig] = field(default_factory=list)
     challenges: List[str] = field(default_factory=list)
 
