@@ -53,7 +53,7 @@ class TestConfigLoader(TestCase):
             ConfigLoader(NotADataclass).convert(self.config_file.name)
 
     def test_file_not_found(self) -> None:
-        with self.assertRaises(BadParameter):
+        with self.assertRaises(ValueError):
             ConfigLoader(ExampleDataclass).convert('plop.txt')
 
 
