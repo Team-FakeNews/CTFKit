@@ -1,16 +1,17 @@
 from base64 import b64encode
-from ctfkit.models.team import Team
-from cdktf import Resource, TerraformOutput
+from cdktf import Resource
 from cdktf_cdktf_provider_kubernetes import ConfigMap, ConfigMapMetadata, Deployment, DeploymentMetadata, DeploymentSpec, DeploymentSpecSelector, DeploymentSpecTemplate, DeploymentSpecTemplateMetadata, DeploymentSpecTemplateSpec, DeploymentSpecTemplateSpecContainer, DeploymentSpecTemplateSpecContainerEnv, DeploymentSpecTemplateSpecContainerPort, DeploymentSpecTemplateSpecContainerSecurityContext, DeploymentSpecTemplateSpecContainerSecurityContextCapabilities, DeploymentSpecTemplateSpecContainerVolumeMount, DeploymentSpecTemplateSpecInitContainer, DeploymentSpecTemplateSpecInitContainerSecurityContext, DeploymentSpecTemplateSpecInitContainerSecurityContextCapabilities, DeploymentSpecTemplateSpecVolume, DeploymentSpecTemplateSpecVolumeConfigMap, DeploymentSpecTemplateSpecVolumeHostPath, Service, ServiceMetadata, ServiceSpec, ServiceSpecPort
 from constructs import Construct
-from nacl.public import PrivateKey
+from ctfkit.models import Team
 
 class K8sVpnWireguard(Resource):
 
     config: str
 
-    def __init__(self, scope: Construct, name: str, namespace: str, team: Team) -> None:
+    def __init__(self, scope: Construct, name: str, namespace: str, team: Team, domain: str) -> None:
         super().__init__(scope, name)
+
+        escaped_domain = domain.replace('.', '\\.')
 
         clients_config = '\n'.join([ f"""[Peer]
 PublicKey = {b64encode(bytes(client.private_key.public_key)).decode()}
@@ -44,6 +45,7 @@ PostDown = iptables -D FORWARD -i %i -j ACCEPT ; iptables -D FORWARD -o %i -j AC
             }
         )
 
+        
         coredns_config = ConfigMap(
             self,
             'coredns_config',
@@ -58,8 +60,8 @@ PostDown = iptables -D FORWARD -i %i -j ACCEPT ; iptables -D FORWARD -o %i -j AC
     auto
     reload 10s
     rewrite stop {{
-        name regex (.*)\.interiut\.ctf {{1}}.{namespace}.svc.cluster.local
-        answer name (.*)\.{namespace}\.svc\.cluster\.local {{1}}.interiut.ctf
+        name regex (.*)\.{escaped_domain} {{1}}.{namespace}.svc.cluster.local
+        answer name (.*)\.{namespace}\.svc\.cluster\.local {{1}}.{domain}
     }}
     forward . /etc/resolv.conf
 }}"""

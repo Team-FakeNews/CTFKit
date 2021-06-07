@@ -25,6 +25,9 @@ pynacl = "*"
 mypy = "*"
 coverage = "*"
 pylint = "*"
+mkdocs = "*"
+mkdocs-click = "*"
+mkdocs-material = "*"
 
 [requires]
 python_version = "3"

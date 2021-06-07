@@ -1,6 +1,6 @@
 from constructs import Construct
 from cdktf import Resource, TerraformOutput
-from cdktf_cdktf_provider_google import ContainerCluster, ContainerClusterMasterAuth, ContainerClusterMasterAuthClientCertificateConfig
+from cdktf_cdktf_provider_google import ContainerCluster, ContainerClusterMasterAuth, ContainerClusterMasterAuthClientCertificateConfig, DataGoogleClientConfig
 
 from ctfkit.models.ctf_config import GcpConfig
 
@@ -27,33 +27,18 @@ class GcpGKE(Resource):
             initial_node_count=gcp_config.node_count
         )
 
-        # self.client_certificate = TerraformOutput(
-        #     self,
-        #     'username',
-        #     sensitive=True,
-        #     value=self.cluster.master_auth.pop().client_certificate
-        # )
-
     @property
     def endpoint(self) -> str:
         return self.cluster.endpoint
 
     @property
-    def username(self) -> str:
-        return f'${{{self.cluster.id[2:-4]}.master_auth.0.username}}'
+    def cluster_ca_certificate(self) -> str:
+        return f'${{{self.cluster.id[2:-4]}.master_auth.0.cluster_ca_certificate}}'
 
     @property
-    def password(self) -> str:
-        return f'${{{self.cluster.id[2:-4]}.master_auth.0.password}}'
+    def token(self) -> str:
+        return DataGoogleClientConfig(self, 'provider').access_token
 
-    # @property
-    # def cluster_ca_certificate(self) -> str:
-    #     return self.cluster.master_auth[0].
-
-    # @property
-    # def client_key(self) -> str:
-    #     return self.cluster.kube_config('0').client_key
-
-    # @property
-    # def client_certificate(self) -> str:
-    #     return self.cluster.kube_config('0').client_certificate
+    @property
+    def services_cidr(self) -> str:
+        return self.cluster.services_ipv4_cidr

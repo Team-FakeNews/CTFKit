@@ -8,6 +8,13 @@ class K8sClusterResource(ABC):
     """
 
     @abstractproperty
+    def services_cidr(self) -> str:
+        """
+        K8s internal network dedicated to services
+        All traffic to these IP should be routed through the VPN
+        """
+
+    @abstractproperty
     def endpoint(self) -> str:
         """
         Public acessible endpoint where the k8s API is reachable
@@ -20,13 +27,7 @@ class K8sClusterResource(ABC):
         """
 
     @abstractproperty
-    def client_key(self) -> str:
+    def token(self) -> str:
         """
-        Client key to use to connect to the kubernetes cluster
-        """
-
-    @abstractproperty
-    def client_certificate(self) -> str:
-        """
-        Client certificate to use to connect to the kubernetes cluster
+        Auth token used to connect to the k8s serveur
         """

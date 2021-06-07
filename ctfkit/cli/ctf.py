@@ -1,4 +1,3 @@
-from ctfkit.terraform import CtfDeployment
 import sys
 from os import getcwd
 from os.path import join
@@ -6,11 +5,14 @@ from re import findall
 
 import git  # type: ignore
 import click
+import yaml
 from click.core import Context
 from yaspin import yaspin  # type: ignore
+from marshmallow_dataclass import class_schema
 
 from ctfkit.constants import SPINNER_SUCCESS, SPINNER_FAIL, SPINNER_MODEL
-from ctfkit.models import CtfConfig, HostingEnvironment, HostingProvider
+from ctfkit.models import HostingEnvironment, HostingProvider
+from ctfkit.models.ctf_config import CtfConfig, DeploymentConfig, GcpConfig
 from ctfkit.utility import ConfigLoader, mkdir, touch, is_slug
 
 from ctfkit.manager.vpn_manager import VPNManager
@@ -18,7 +20,7 @@ from ctfkit.manager.vpn_manager import VPNManager
 
 pass_config = click.make_pass_decorator(CtfConfig)
 
-CtfDeployment
+CtfDeployment = None
 
 @click.group()
 @click.pass_context
@@ -59,8 +61,8 @@ def init(ctf_name: str, provider: str) -> None:
 
     # We initiate the CTF's directory with default files
     readme_default_file = "README.md"
-    default_dirs = ["challenges", "config"]
-    default_files = [readme_default_file]
+    default_dirs = ["challenges"]
+    default_files = [readme_default_file, 'ctf.yaml']
 
     # Create all directories with .gitkeep file to preserve them if empty
     for default in default_dirs:
@@ -78,6 +80,26 @@ def init(ctf_name: str, provider: str) -> None:
         if default == readme_default_file:
             with open(file_path, 'w') as file_:
                 file_.write(f"# [CTF Kit] {ctf_name}\n")
+        
+        elif default == "ctf.yaml":
+            config = CtfConfig(
+                kind='ctf',
+                name='Example CTF',
+                deployments=[DeploymentConfig(
+                    internal_domain='example.ctf',
+                    environment=HostingEnvironment.TESTING,
+                    provider=HostingProvider.GCP,
+                    gcp=GcpConfig(
+                        project='change-this-123',
+                        machine_type='e1-standard-2',
+                        region='europe-west1',
+                        zone='europe-west1-b'
+                    )
+                )]
+            )
+            with open(file_path, 'w') as file_:
+                file_.write(yaml.dump(class_schema(CtfConfig)().dump(obj=config)))
+
     repo.index.add(default_files)
 
     repo.index.commit(f"CTF Kit ctf '{ctf_name}' initial commit")
@@ -139,14 +161,17 @@ def deploy(config: CtfConfig, environment: str):
     helpers.init()
     helpers.deploy()
 
-    servers = app.get_outputs()['servers']['value']
+    # Extract outputs from deployement
+    outputs = app.get_outputs()
+    servers = outputs['servers']['value']
+    services_cidr = outputs['services_cidr']['value']
 
-    VPNManager.generate_clients_config(config.teams, servers)
+    VPNManager.generate_clients_config(config.teams, servers, services_cidr)
 
 
 @cli.command('destroy')
 @click.argument('environment', required=True,
-                type=click.Choice(map(lambda e: e.value, HostingEnvironment)))
+                type=click.Choice([ e.value for e in HostingEnvironment ]))
 @click.option("--config",
               type=ConfigLoader(CtfConfig),
               default="ctf.yaml")
@@ -207,6 +232,7 @@ class TfHelpers:
         Wrap call to terraformcdk synth() method while showing a spinner
         """
         with yaspin(SPINNER_MODEL, text="Generating infrastructure configuration ...") as spinner:
+            mkdir('.tfout')
             self.infra.synth()
             spinner.ok(SPINNER_SUCCESS)
 
