@@ -5,9 +5,9 @@ challenges:
 teams_file: ./staff.json
 deployments:
     -   environment: testing
-        provider: azure
+        provider: gcp
         gcp:
-            project: interiut
+            project: norzh-ctf-2021
             region: europe-west1
             zone: europe-west1-b
         azure:

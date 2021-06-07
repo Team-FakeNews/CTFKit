@@ -79,6 +79,9 @@ class ConfigLoader(Path, Generic[ClassType]):
         :return: A new instance of the dataclass filled with attributes from
         the yaml file
         """
+        print(value)
+        if isinstance(value, self.base_cls):
+            return value
 
         # Extract the requested file
         filename, ext = os.path.splitext(value)

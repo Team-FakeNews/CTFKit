@@ -115,4 +115,5 @@ class CtfConfig:
             )
 
     def __repr__(self) -> str:
-        return pformat(vars(self))
+        return f'CtfConfig({self.name})'
+        # return pformat(vars(self))

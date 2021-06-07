@@ -105,7 +105,7 @@ class CtfStack(TerraformStack):
             scope: Construct,
             config: CtfConfig,
             environment: HostingEnvironment) -> None:
-        super().__init__(scope, f'infra_{environment.value}')
+        super().__init__(scope, environment.value)
         self.config = config
         self.deployment_config = config.get_deployment(environment)
 
@@ -119,13 +119,16 @@ class CtfStack(TerraformStack):
             raise Exception(f'Unsupported Hosting provider: {self.deployment_config.provider}')
 
         # Kubernetes provider configuration using previously configured cluster
+        print(cluster.endpoint, cluster.username, cluster.password)
         KubernetesProvider(
             self,
             'kubernetes',
             host=cluster.endpoint,
-            client_certificate=f'${{base64decode({cluster.client_certificate[2:-1]})}}',
-            client_key=f'${{base64decode({cluster.client_key[2:-1]})}}',
-            cluster_ca_certificate=f'${{base64decode({cluster.cluster_ca_certificate[2:-1]})}}'
+            username=cluster.username,
+            password=cluster.password
+            # client_certificate=f'${{base64decode({cluster.client_certificate[2:-1]})}}',
+            # client_key=f'${{base64decode({cluster.client_key[2:-1]})}}',
+            # cluster_ca_certificate=f'${{base64decode({cluster.cluster_ca_certificate[2:-1]})}}'
         )
 
         if self.config.teams is not None:
@@ -161,21 +164,21 @@ class CtfStack(TerraformStack):
         if self.deployment_config.gcp is None:
             raise TypeError('gcp config should not be empty')
 
-        try:
-            with open(self.deployment_config.gcp.credentials_file, 'r') as credentials:
-                GoogleProvider(
-                    self,
-                    HostingProvider.GCP.value,
-                    credentials=credentials.read(),
-                    project=self.deployment_config.gcp.project,
-                    region=self.deployment_config.gcp.region,
-                    zone=self.deployment_config.gcp.zone
-                )
+        # try:
+        #     with open(self.deployment_config.gcp.credentials_file, 'r') as credentials:
+        GoogleProvider(
+            self,
+            HostingProvider.GCP.value,
+            # credentials=credentials.read(),
+            project=self.deployment_config.gcp.project,
+            region=self.deployment_config.gcp.region,
+            zone=self.deployment_config.gcp.zone
+        )
 
-        except FileNotFoundError:
-            print(f'ERROR: You are missing a {self.deployment_config.gcp.credentials_file}'
-                  'to authenticate with GCP')
-            sys.exit(1)
+        # except FileNotFoundError:
+        #     print(f'ERROR: You are missing a {self.deployment_config.gcp.credentials_file}'
+        #           ' to authenticate with GCP')
+        #     sys.exit(1)
 
         return GcpGKE(self, 'k8s_cluster', self.deployment_config.gcp)
 

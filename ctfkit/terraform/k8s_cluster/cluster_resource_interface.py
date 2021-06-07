@@ -8,6 +8,12 @@ class K8sClusterResource(ABC):
     """
 
     @abstractproperty
+    def endpoint(self) -> str:
+        """
+        Public acessible endpoint where the k8s API is reachable
+        """
+
+    @abstractproperty
     def cluster_ca_certificate(self) -> str:
         """
         Cluster CA certificate to use to connect to the kubernetes cluster

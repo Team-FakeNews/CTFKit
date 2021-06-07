@@ -1,31 +1,31 @@
-import git  # type: ignore
+from ctfkit.terraform import CtfDeployment
 import sys
 from os import getcwd
 from os.path import join
 from re import findall
-from base64 import b64encode, b64decode
-from typing import Optional
 
+import git  # type: ignore
 import click
 from click.core import Context
 from yaspin import yaspin  # type: ignore
-from nacl.public import PrivateKey  # type: ignore
 
 from ctfkit.constants import SPINNER_SUCCESS, SPINNER_FAIL, SPINNER_MODEL
 from ctfkit.models import CtfConfig, HostingEnvironment, HostingProvider
 from ctfkit.utility import ConfigLoader, mkdir, touch, is_slug
-from ctfkit.terraform import CtfDeployment
+
 from ctfkit.manager.vpn_manager import VPNManager
 
 
 pass_config = click.make_pass_decorator(CtfConfig)
 
+CtfDeployment
 
 @click.group()
 @click.pass_context
 def cli(context: Context):
     """Root group for the ctf command"""
-
+    global CtfDeployment
+    from ctfkit.terraform import CtfDeployment
 
 @cli.command('init')
 @click.option("-n", "--ctf-name", type=str, prompt=True)
@@ -86,7 +86,7 @@ def init(ctf_name: str, provider: str) -> None:
 
 @cli.command('plan')
 @click.argument('environment', required=True,
-                type=click.Choice(map(lambda e: e.value, HostingEnvironment)))
+                type=click.Choice([ e.value for e in HostingEnvironment ]))
 @click.option("--config",
               type=ConfigLoader(CtfConfig),
               default="ctf.yaml")
@@ -114,7 +114,7 @@ def plan(config: CtfConfig, environment: str):
 
 @cli.command('deploy')
 @click.argument('environment', required=True,
-                type=click.Choice(map(lambda e: e.value, HostingEnvironment)))
+                type=click.Choice([ e.value for e in HostingEnvironment ]))
 @click.option("--config",
               type=ConfigLoader(CtfConfig),
               default="ctf.yaml")
@@ -159,7 +159,7 @@ def destroy(config: CtfConfig, environment: str):
     # Find the requested environment
     environment_e = next(
         elem for elem in HostingEnvironment if elem.value == environment)
-    
+
     # Prepare clients private keys
     VPNManager.generate_clients_private(config.teams)
 
@@ -173,7 +173,7 @@ def destroy(config: CtfConfig, environment: str):
 
 
 
-def create_deployment(config: CtfConfig, environment: HostingEnvironment) -> CtfDeployment:
+def create_deployment(config: CtfConfig, environment: HostingEnvironment) -> any:
     outdir = join(getcwd(), '.tfout', environment.value)
     mkdir(outdir)
 
@@ -184,9 +184,9 @@ class TfHelpers:
     Infrastructure related helpers
     """
 
-    infra: CtfDeployment
+    infra: any
 
-    def __init__(self, infra: CtfDeployment) -> None:
+    def __init__(self, infra: any) -> None:
         self.infra = infra
 
     def init(self) -> None:
