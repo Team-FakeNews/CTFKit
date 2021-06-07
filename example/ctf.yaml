@@ -2,15 +2,13 @@ kind: ctf
 name: fakectf
 challenges:
     - ./challs/01-test
+    - ./challs/02-dutyfree
 teams_file: ./staff.json
 deployments:
     -   environment: testing
         provider: gcp
+        internal_domain: norzh.ctf
         gcp:
             project: norzh-ctf-2021
             region: europe-west1
             zone: europe-west1-b
-        azure:
-            location: westeurope
-            node_count: 1
-            vm_size: Standard_D2_v2
