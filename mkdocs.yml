@@ -1,0 +1,12 @@
+site_name: CTFKit
+site_url: 'https://ctf-kit.fr'
+repo_url: https://git.fakenews.sh/ctfkit/ctfkit
+theme: material
+markdown_extensions:
+  - attr_list
+  - mkdocs-click
+  - admonition
+plugins:
+  - search
+  - pdf-export:
+      combined: true
