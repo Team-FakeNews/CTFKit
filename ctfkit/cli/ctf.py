@@ -1,31 +1,33 @@
-import git  # type: ignore
 import sys
 from os import getcwd
 from os.path import join
 from re import findall
-from base64 import b64encode, b64decode
-from typing import Optional
 
+import git  # type: ignore
 import click
+import yaml
 from click.core import Context
 from yaspin import yaspin  # type: ignore
-from nacl.public import PrivateKey  # type: ignore
+from marshmallow_dataclass import class_schema
 
 from ctfkit.constants import SPINNER_SUCCESS, SPINNER_FAIL, SPINNER_MODEL
-from ctfkit.models import CtfConfig, HostingEnvironment, HostingProvider
+from ctfkit.models import HostingEnvironment, HostingProvider
+from ctfkit.models.ctf_config import CtfConfig, DeploymentConfig, GcpConfig
 from ctfkit.utility import ConfigLoader, mkdir, touch, is_slug
-from ctfkit.terraform import CtfDeployment
+
 from ctfkit.manager.vpn_manager import VPNManager
 
 
 pass_config = click.make_pass_decorator(CtfConfig)
 
+CtfDeployment = None
 
 @click.group()
 @click.pass_context
 def cli(context: Context):
-    """Root group for the ctf command"""
-
+    """Manage your CTF infrastructure"""
+    global CtfDeployment
+    from ctfkit.terraform import CtfDeployment
 
 @cli.command('init')
 @click.option("-n", "--ctf-name", type=str, prompt=True)
@@ -33,7 +35,7 @@ def cli(context: Context):
               type=click.Choice(list(map(lambda e: e.value, HostingProvider))))
 def init(ctf_name: str, provider: str) -> None:
     """
-    Create the CTF repository in the current working directory
+    Create a CTF repository in the current working directory
 
     :param ctf_name: The name of the CTF
     :param provider: The provider which will host the CTF
@@ -59,8 +61,8 @@ def init(ctf_name: str, provider: str) -> None:
 
     # We initiate the CTF's directory with default files
     readme_default_file = "README.md"
-    default_dirs = ["challenges", "config"]
-    default_files = [readme_default_file]
+    default_dirs = ["challenges"]
+    default_files = [readme_default_file, 'ctf.yaml']
 
     # Create all directories with .gitkeep file to preserve them if empty
     for default in default_dirs:
@@ -78,6 +80,26 @@ def init(ctf_name: str, provider: str) -> None:
         if default == readme_default_file:
             with open(file_path, 'w') as file_:
                 file_.write(f"# [CTF Kit] {ctf_name}\n")
+        
+        elif default == "ctf.yaml":
+            config = CtfConfig(
+                kind='ctf',
+                name=ctf_name,
+                deployments=[DeploymentConfig(
+                    internal_domain=f'{ctf_name}.ctf',
+                    environment=HostingEnvironment.TESTING,
+                    provider=HostingProvider.GCP,
+                    gcp=GcpConfig(
+                        project='change-this-123',
+                        machine_type='e1-standard-2',
+                        region='europe-west1',
+                        zone='europe-west1-b'
+                    )
+                )]
+            )
+            with open(file_path, 'w') as file_:
+                file_.write(yaml.dump(class_schema(CtfConfig)().dump(obj=config), sort_keys=False))
+
     repo.index.add(default_files)
 
     repo.index.commit(f"CTF Kit ctf '{ctf_name}' initial commit")
@@ -86,15 +108,18 @@ def init(ctf_name: str, provider: str) -> None:
 
 @cli.command('plan')
 @click.argument('environment', required=True,
-                type=click.Choice(map(lambda e: e.value, HostingEnvironment)))
+                type=click.Choice([ e.value for e in HostingEnvironment ]))
 @click.option("--config",
-              type=ConfigLoader(CtfConfig),
-              default="ctf.yaml")
-def plan(config: CtfConfig, environment: str):
+              type=str,
+              default="ctf")
+def plan(config: str, environment: str):
     """
-    Generate terraform configuration files
-    from the ctf configuration and plan required changes
+    List planned infrastructure modifications
+
+    Generate terraform configuration and list planned addition, deletion and modification
     """
+
+    config = ConfigLoader(CtfConfig).convert(config)
 
     environment_e = next(
         elem for elem in HostingEnvironment if elem.value == environment)
@@ -114,15 +139,17 @@ def plan(config: CtfConfig, environment: str):
 
 @cli.command('deploy')
 @click.argument('environment', required=True,
-                type=click.Choice(map(lambda e: e.value, HostingEnvironment)))
+                type=click.Choice([ e.value for e in HostingEnvironment ]))
 @click.option("--config",
-              type=ConfigLoader(CtfConfig),
-              default="ctf.yaml")
-def deploy(config: CtfConfig, environment: str):
+              type=str,
+              default="ctf")
+def deploy(config: str, environment: str):
     """
     Generate terraform configuration files
     from the ctf configuration and deploy required changes
     """
+
+    config = ConfigLoader(CtfConfig).convert(config)
 
     # Find the requested environment
     environment_e = next(
@@ -139,27 +166,34 @@ def deploy(config: CtfConfig, environment: str):
     helpers.init()
     helpers.deploy()
 
-    servers = app.get_outputs()['servers']['value']
+    # Extract outputs from deployement
+    outputs = app.get_outputs()
+    if 'servers' in outputs:
+        with yaspin(SPINNER_MODEL, text='Generating VPN configurations ...'):
+            servers = outputs['servers']['value']
+            services_cidr = outputs['services_cidr']['value']
 
-    VPNManager.generate_clients_config(config.teams, servers)
+            VPNManager.generate_clients_config(config.teams, servers, services_cidr)
 
 
 @cli.command('destroy')
 @click.argument('environment', required=True,
-                type=click.Choice(map(lambda e: e.value, HostingEnvironment)))
+                type=click.Choice([ e.value for e in HostingEnvironment ]))
 @click.option("--config",
-              type=ConfigLoader(CtfConfig),
-              default="ctf.yaml")
-def destroy(config: CtfConfig, environment: str):
+              type=str,
+              default="ctf")
+def destroy(config_filename: CtfConfig, environment: str):
     """
     Generate terraform configuration files
     from the ctf configuration and deploy required changes
     """
 
+    config = ConfigLoader(CtfConfig).convert(config)
+
     # Find the requested environment
     environment_e = next(
         elem for elem in HostingEnvironment if elem.value == environment)
-    
+
     # Prepare clients private keys
     VPNManager.generate_clients_private(config.teams)
 
@@ -173,7 +207,7 @@ def destroy(config: CtfConfig, environment: str):
 
 
 
-def create_deployment(config: CtfConfig, environment: HostingEnvironment) -> CtfDeployment:
+def create_deployment(config: CtfConfig, environment: HostingEnvironment) -> any:
     outdir = join(getcwd(), '.tfout', environment.value)
     mkdir(outdir)
 
@@ -184,9 +218,9 @@ class TfHelpers:
     Infrastructure related helpers
     """
 
-    infra: CtfDeployment
+    infra: any
 
-    def __init__(self, infra: CtfDeployment) -> None:
+    def __init__(self, infra: any) -> None:
         self.infra = infra
 
     def init(self) -> None:
@@ -207,6 +241,7 @@ class TfHelpers:
         Wrap call to terraformcdk synth() method while showing a spinner
         """
         with yaspin(SPINNER_MODEL, text="Generating infrastructure configuration ...") as spinner:
+            mkdir('.tfout')
             self.infra.synth()
             spinner.ok(SPINNER_SUCCESS)
 

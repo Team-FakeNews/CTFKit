@@ -4,11 +4,10 @@ conversions, path-related operations, common checks...
 
 import os
 import selectors
-import re
 import json
 from io import StringIO
 from dataclasses import is_dataclass
-from subprocess import PIPE, Popen, STDOUT
+from subprocess import PIPE, Popen
 from typing import Any, Callable, Generic, Optional, List, Tuple, Type, TypeVar
 
 import validators  # type: ignore
@@ -16,6 +15,7 @@ import yaml
 from yaml.loader import SafeLoader
 from click import Path, Parameter
 from click.core import Context
+from click.exceptions import BadArgumentUsage
 from marshmallow.schema import Schema
 from marshmallow_dataclass import class_schema
 
@@ -71,14 +71,9 @@ class ConfigLoader(Path, Generic[ClassType]):
             value: str,
             param: Optional[Parameter] = None,
             ctx: Optional[Context] = None) -> Any:
-        """
-        Reads the specified yaml file, then validate its schema and marshamall
-        each value into a new instance of the previously provided class.
 
-        :param path: Path to the yaml file
-        :return: A new instance of the dataclass filled with attributes from
-        the yaml file
-        """
+        if isinstance(value, self.base_cls):
+            return value
 
         # Extract the requested file
         filename, ext = os.path.splitext(value)
@@ -86,16 +81,16 @@ class ConfigLoader(Path, Generic[ClassType]):
             raw_config = self._try_load_file(filename, ext[1:])
 
         else: # Else try to append .yaml/.yml/.json to find the requested file
-            try:
-                raw_config = next(
-                    config for config in map(
-                        lambda extension: self._try_load_file(value, extension),
-                        self.EXTENSIONS
-                    ) if config is not None
-                )
-            except StopIteration:
-                raise ValueError('Unable to find any file'
-                                 f' matching {filename}.{ext if ext != "" else "/".join(self.EXTENSIONS)}')
+            raw_config = next(
+                config for config in map(
+                    lambda extension: self._try_load_file(value, extension),
+                    self.EXTENSIONS
+                ) if config is not None
+            )
+            
+        if raw_config is None:
+            raise BadArgumentUsage('Unable to find any file'
+                                f' matching {filename}{ext if ext != "" else "/".join(self.EXTENSIONS)}')
 
         # Generate the marshmallow schema using the dataclass typings
         config_schema: Schema = class_schema(self.base_cls)()
@@ -138,39 +133,39 @@ def proc_exec(
     :return: A tuple which container the exit_code, the stdout and stderr buffer
     """
 
-    process = Popen(
+    with Popen(
         args,
         cwd=cwd,
         stderr=PIPE,
         stdout=PIPE,
         universal_newlines=True
-    )
+    ) as process:
 
-    selector = selectors.DefaultSelector()
-    selector.register(process.stdout, selectors.EVENT_READ, stdout_cb)
-    selector.register(process.stderr, selectors.EVENT_READ, stderr_cb)
+        selector = selectors.DefaultSelector()
+        selector.register(process.stdout, selectors.EVENT_READ, stdout_cb)
+        selector.register(process.stderr, selectors.EVENT_READ, stderr_cb)
 
-    # Create buffer to accumulates outputs
-    stdout_buf = StringIO()
-    stderr_buf = StringIO()
+        # Create buffer to accumulates outputs
+        stdout_buf = StringIO()
+        stderr_buf = StringIO()
 
-    while process.poll() is None:
-        events = selector.select()
-        for key, _ in events:
-            line = key.fileobj.readline()
+        while process.poll() is None:
+            events = selector.select()
+            for key, _ in events:
+                line = key.fileobj.readline()
 
-            if key.fileobj is process.stdout:
-                stdout_buf.write(line)
-            elif key.fileobj is process.stderr:
-                stderr_buf.write(line)
-            else:
-                raise Exception('Unexpected error : unable to determine the corresponding output')
+                if key.fileobj is process.stdout:
+                    stdout_buf.write(line)
+                elif key.fileobj is process.stderr:
+                    stderr_buf.write(line)
+                else:
+                    raise Exception('Unexpected error : unable to determine the corresponding output')
 
-            if line != '' and key.data is not None:
-                key.data(line)
+                if line != '' and key.data is not None:
+                    key.data(line)
 
-    # Returns (exit_code, stdout, stderr)
-    return process.wait(), stdout_buf.getvalue(), stderr_buf.getvalue()
+        # Returns (exit_code, stdout, stderr)
+        return process.wait(), stdout_buf.getvalue(), stderr_buf.getvalue()
 
 
 def touch(path: str, data=None) -> None:
@@ -182,15 +177,13 @@ def touch(path: str, data=None) -> None:
     :param data: The data to write into `file`
     :type data: str
     """
-    if os.path.exists(path):
-        print(f"File {path} already exists")
-    else:
-        file = open(path, "w")
-        # If data has been specified
-        if data:
-            file.write(data)
+    if not os.path.exists(path):
+        with open(path, "w") as file:
+            # If data has been specified
+            if data:
+                file.write(data)
 
-        file.close()
+            file.close()
 
 
 def mkdir(path: str) -> None:
@@ -198,14 +191,8 @@ def mkdir(path: str) -> None:
 
     :param path: The directory to create
     """
-    if os.path.exists(path) and os.path.isdir(path):
-        print(f"Directory {path} already exists")
-    else:
-        try:
-            os.mkdir(path)
-        except OSError as error:
-            print(error)
-            raise error
+    if not (os.path.exists(path) or os.path.isdir(path)):
+        os.mkdir(path)
 
 
 def is_slug(string: str) -> bool:

@@ -45,7 +45,7 @@ class CtfDeployment(App):
         """
         process = Popen(
             ['terraform', 'init'],
-            cwd=self.outdir,
+            cwd=join(self.outdir, 'stacks', 'ctf'),
             stderr=PIPE,
             stdout=PIPE,
             universal_newlines=True
@@ -59,7 +59,7 @@ class CtfDeployment(App):
         command = ['terraform', 'plan']
         return proc_exec(
             command,
-            cwd=self.outdir,
+            cwd=join(self.outdir, 'stacks', 'ctf'),
             stdout_cb=stdout_cb,
             stderr_cb=lambda line: sys.stderr.write(f'[{" ".join(command)}: STDERR]: {line}')
         )
@@ -71,7 +71,7 @@ class CtfDeployment(App):
         command = ['terraform', 'apply', '-auto-approve']
         return proc_exec(
             command,
-            cwd=self.outdir,
+            cwd=join(self.outdir, 'stacks', 'ctf'),
             stdout_cb=stdout_cb,
             stderr_cb=lambda line: sys.stderr.write(f'[{" ".join(command)}: STDERR]: {line}')
         )
@@ -83,13 +83,13 @@ class CtfDeployment(App):
         command = ['terraform', 'destroy', '-auto-approve']
         return proc_exec(
             command,
-            cwd=self.outdir,
+            cwd=join(self.outdir, 'stacks', 'ctf'),
             stdout_cb=stdout_cb,
             stderr_cb=lambda line: sys.stderr.write(f'[{" ".join(command)}: STDERR]: {line}')
         )
 
     def get_outputs(self) -> List[Any]:
-        return json.load(open(join(self.outdir, 'terraform.tfstate'), 'r'))['outputs']
+        return json.load(open(join(self.outdir, 'stacks', 'ctf', 'terraform.tfstate'), 'r'))['outputs']
 
 
 class CtfStack(TerraformStack):
@@ -105,7 +105,7 @@ class CtfStack(TerraformStack):
             scope: Construct,
             config: CtfConfig,
             environment: HostingEnvironment) -> None:
-        super().__init__(scope, f'infra_{environment.value}')
+        super().__init__(scope, 'ctf')
         self.config = config
         self.deployment_config = config.get_deployment(environment)
 
@@ -123,8 +123,7 @@ class CtfStack(TerraformStack):
             self,
             'kubernetes',
             host=cluster.endpoint,
-            client_certificate=f'${{base64decode({cluster.client_certificate[2:-1]})}}',
-            client_key=f'${{base64decode({cluster.client_key[2:-1]})}}',
+            token=cluster.token,
             cluster_ca_certificate=f'${{base64decode({cluster.cluster_ca_certificate[2:-1]})}}'
         )
 
@@ -132,26 +131,33 @@ class CtfStack(TerraformStack):
             for team in self.config.teams:
                 ns = Namespace(
                     self,
-                    'team_ns',
+                    f'team_ns_{team.slug}',
                     metadata=[NamespaceMetadata(
-                        name=f'team-{team.name}'
+                        name=f'team-{team.slug}'
                     )]
                 )
 
                 self.servers[team.name] = K8sVpnWireguard(
-                    self,
-                    'team_wireguard',
+                    ns,
+                    'wireguard',
                     ns.metadata_input[0].name,
-                    team
+                    team,
+                    self.deployment_config.internal_domain
                 ).endpoint_var
 
-                K8sChallengeListDeployments(self, 'team_challenges', self.config.challenges_config, ns.metadata_input[0].name)
+                K8sChallengeListDeployments(ns, 'team_challenges', self.config.challenges_config, ns.metadata_input[0].name)
 
         TerraformOutput(
             self,
             'servers',
             value=self.servers
         ).override_logical_id('servers')
+
+        TerraformOutput(
+            self,
+            'services_cidr',
+            value=cluster.services_cidr
+        ).override_logical_id('services_cidr')
 
     def _declare_gcp_cluster(self) -> K8sClusterResource:
         """
@@ -161,21 +167,13 @@ class CtfStack(TerraformStack):
         if self.deployment_config.gcp is None:
             raise TypeError('gcp config should not be empty')
 
-        try:
-            with open(self.deployment_config.gcp.credentials_file, 'r') as credentials:
-                GoogleProvider(
-                    self,
-                    HostingProvider.GCP.value,
-                    credentials=credentials.read(),
-                    project=self.deployment_config.gcp.project,
-                    region=self.deployment_config.gcp.region,
-                    zone=self.deployment_config.gcp.zone
-                )
-
-        except FileNotFoundError:
-            print(f'ERROR: You are missing a {self.deployment_config.gcp.credentials_file}'
-                  'to authenticate with GCP')
-            sys.exit(1)
+        GoogleProvider(
+            self,
+            HostingProvider.GCP.value,
+            project=self.deployment_config.gcp.project,
+            region=self.deployment_config.gcp.region,
+            zone=self.deployment_config.gcp.zone
+        )
 
         return GcpGKE(self, 'k8s_cluster', self.deployment_config.gcp)
 

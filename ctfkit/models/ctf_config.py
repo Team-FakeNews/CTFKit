@@ -1,5 +1,3 @@
-from ctfkit.utility import ConfigLoader
-from ctfkit.models.team import Team
 from os.path import join
 from pprint import pformat
 from typing import List, Optional
@@ -8,6 +6,8 @@ from dataclasses import dataclass, field
 from slugify import slugify
 from click.exceptions import BadParameter
 
+from ctfkit.utility import ConfigLoader
+from ctfkit.models.team import Team
 from ctfkit.challenge import Challenge
 from .hosting_environment import HostingEnvironment
 from .hosting_provider import HostingProvider
@@ -22,7 +22,6 @@ class GcpConfig:
     project: str
     region: str
     zone: str
-    credentials_file: str = 'credentials.json'
     machine_type: str = 'n1-standard-4'
     node_count: int = 1
 
@@ -48,6 +47,7 @@ class DeploymentConfig:
     It can be either a private testing environment, or a production environment
     which should be the public and runing CTF.
     """
+    internal_domain: str
     environment: HostingEnvironment = field(
         default=None, metadata={"by_value": True})  # type: ignore
     provider: HostingProvider = field(
@@ -68,8 +68,8 @@ class CtfConfig:
     """
     kind: str
     name: str
-    teams_file: Optional[str]
-    teams: Optional[List[Team]]
+    teams_file: Optional[str] = None
+    teams: Optional[List[Team]] = field(init=False, default_factory=list)
     deployments: List[DeploymentConfig] = field(default_factory=list)
     challenges: List[str] = field(default_factory=list)
 
@@ -77,7 +77,7 @@ class CtfConfig:
 
     def __post_init__(self):
         self.challenges_config = [
-            Challenge.from_yaml(join(config_path, 'challenge.yml')).config
+            Challenge.from_yaml(join(config_path, 'challenge')).config
             for config_path in self.challenges
         ]
 
@@ -115,4 +115,5 @@ class CtfConfig:
             )
 
     def __repr__(self) -> str:
-        return pformat(vars(self))
+        return f'CtfConfig({self.name})'
+        # return pformat(vars(self))

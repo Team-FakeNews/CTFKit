@@ -64,7 +64,7 @@ class K8sChallengeDeployment(Resource):
             self,
             'challenge',
             metadata=[ServiceMetadata(
-                name=f'challenge-{challenge_config.slug}',
+                name=challenge_config.slug,
                 namespace=namespace
             )],
             spec=[ServiceSpec(

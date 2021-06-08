@@ -1,7 +1,8 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
 
-from nacl.public import PrivateKey, PublicKey  # type: ignore
+from nacl.public import PrivateKey  # type: ignore
+from slugify import slugify
 
 
 @dataclass
@@ -21,3 +22,10 @@ class Team:
     name: str
     members: List[Member]
     private_key: Optional[PrivateKey] = field(init=False)
+
+    @property
+    def slug(self) -> str:
+        """
+        Slugified team name compatible with k8s
+        """
+        return slugify(self.name)
