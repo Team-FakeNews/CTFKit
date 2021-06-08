@@ -110,14 +110,16 @@ def init(ctf_name: str, provider: str) -> None:
 @click.argument('environment', required=True,
                 type=click.Choice([ e.value for e in HostingEnvironment ]))
 @click.option("--config",
-              type=ConfigLoader(CtfConfig),
-              default="ctf.yaml")
-def plan(config: CtfConfig, environment: str):
+              type=str,
+              default="ctf")
+def plan(config_filename: str, environment: str):
     """
     List planned infrastructure modifications
 
     Generate terraform configuration and list planned addition, deletion and modification
     """
+
+    config = ConfigLoader(CtfConfig).convert(config_filename)
 
     environment_e = next(
         elem for elem in HostingEnvironment if elem.value == environment)
@@ -139,13 +141,15 @@ def plan(config: CtfConfig, environment: str):
 @click.argument('environment', required=True,
                 type=click.Choice([ e.value for e in HostingEnvironment ]))
 @click.option("--config",
-              type=ConfigLoader(CtfConfig),
-              default="ctf.yaml")
-def deploy(config: CtfConfig, environment: str):
+              type=str,
+              default="ctf")
+def deploy(config_filename: str, environment: str):
     """
     Generate terraform configuration files
     from the ctf configuration and deploy required changes
     """
+
+    config = ConfigLoader(CtfConfig).convert(config_filename)
 
     # Find the requested environment
     environment_e = next(
@@ -176,13 +180,15 @@ def deploy(config: CtfConfig, environment: str):
 @click.argument('environment', required=True,
                 type=click.Choice([ e.value for e in HostingEnvironment ]))
 @click.option("--config",
-              type=ConfigLoader(CtfConfig),
+              type=str,
               default="ctf")
-def destroy(config: CtfConfig, environment: str):
+def destroy(config_filename: CtfConfig, environment: str):
     """
     Generate terraform configuration files
     from the ctf configuration and deploy required changes
     """
+
+    config = ConfigLoader(CtfConfig).convert(config_filename)
 
     # Find the requested environment
     environment_e = next(
