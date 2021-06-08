@@ -25,7 +25,7 @@ CtfDeployment = None
 @click.group()
 @click.pass_context
 def cli(context: Context):
-    """Root group for the ctf command"""
+    """Manage your CTF infrastructure"""
     global CtfDeployment
     from ctfkit.terraform import CtfDeployment
 
@@ -35,7 +35,7 @@ def cli(context: Context):
               type=click.Choice(list(map(lambda e: e.value, HostingProvider))))
 def init(ctf_name: str, provider: str) -> None:
     """
-    Create the CTF repository in the current working directory
+    Create a CTF repository in the current working directory
 
     :param ctf_name: The name of the CTF
     :param provider: The provider which will host the CTF
@@ -84,9 +84,9 @@ def init(ctf_name: str, provider: str) -> None:
         elif default == "ctf.yaml":
             config = CtfConfig(
                 kind='ctf',
-                name='Example CTF',
+                name=ctf_name,
                 deployments=[DeploymentConfig(
-                    internal_domain='example.ctf',
+                    internal_domain=f'{ctf_name}.ctf',
                     environment=HostingEnvironment.TESTING,
                     provider=HostingProvider.GCP,
                     gcp=GcpConfig(
@@ -98,7 +98,7 @@ def init(ctf_name: str, provider: str) -> None:
                 )]
             )
             with open(file_path, 'w') as file_:
-                file_.write(yaml.dump(class_schema(CtfConfig)().dump(obj=config)))
+                file_.write(yaml.dump(class_schema(CtfConfig)().dump(obj=config), sort_keys=False))
 
     repo.index.add(default_files)
 
@@ -114,8 +114,9 @@ def init(ctf_name: str, provider: str) -> None:
               default="ctf.yaml")
 def plan(config: CtfConfig, environment: str):
     """
-    Generate terraform configuration files
-    from the ctf configuration and plan required changes
+    List planned infrastructure modifications
+
+    Generate terraform configuration and list planned addition, deletion and modification
     """
 
     environment_e = next(

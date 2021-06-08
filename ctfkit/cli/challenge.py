@@ -14,6 +14,7 @@ from ctfkit.constants import SPINNER_MODEL, SPINNER_FAIL, SPINNER_SUCCESS
 
 @click.group()
 def cli() -> None:
+    """Generate and test your challenge"""
     pass
 
 

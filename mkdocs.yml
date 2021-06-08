@@ -6,7 +6,10 @@ markdown_extensions:
   - attr_list
   - mkdocs-click
   - admonition
+  - pymdownx.tasklist:
+      custom_checkbox: true
 plugins:
   - search
   - pdf-export:
       combined: true
+      enabled_if_env: PDF

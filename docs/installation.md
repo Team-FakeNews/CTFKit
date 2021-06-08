@@ -15,20 +15,15 @@
 ## Download
 
 While CTFKit is in beta, no package will be distributed on pip.
-You need to clone from source sources and install the package yourself.
+You need to clone from sources and install the package yourself.
 
 You can get the latest version from the official repository : `git clone https://git.fakenews.sh/ctfkit/ctfkit.git`
 
 ## Installation
 
-Once the repository is clone you can install the package globaly with :
+Once the repository is cloned you can install the package globaly with :
 ```
 pip install .
-```
-
-Alternatively, you can use CTFKit without any installation by calling the binary :
-```bash
-python3 
 ```
 
 ## Checks

@@ -77,7 +77,7 @@ class CtfConfig:
 
     def __post_init__(self):
         self.challenges_config = [
-            Challenge.from_yaml(join(config_path, 'challenge.yml')).config
+            Challenge.from_yaml(join(config_path, 'challenge')).config
             for config_path in self.challenges
         ]
 
