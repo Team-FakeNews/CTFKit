@@ -1,5 +1,7 @@
 # Home
 
+[Quickstart](./installation/){ .md-button }
+
 ## Goals
 
 CTF Kit is a cli tools which allows you to deploy CTF easily.
@@ -20,4 +22,8 @@ Deploment is currently based on kubernetes, but more architecture will be added 
 # Getting Started
 
 See [installation](./installation/)
+
+# Configuration files
+
+See [configuration files](./configuration-files/)
 
