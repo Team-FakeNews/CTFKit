@@ -112,14 +112,14 @@ def init(ctf_name: str, provider: str) -> None:
 @click.option("--config",
               type=str,
               default="ctf")
-def plan(config_filename: str, environment: str):
+def plan(config: str, environment: str):
     """
     List planned infrastructure modifications
 
     Generate terraform configuration and list planned addition, deletion and modification
     """
 
-    config = ConfigLoader(CtfConfig).convert(config_filename)
+    config = ConfigLoader(CtfConfig).convert(config)
 
     environment_e = next(
         elem for elem in HostingEnvironment if elem.value == environment)
@@ -143,13 +143,13 @@ def plan(config_filename: str, environment: str):
 @click.option("--config",
               type=str,
               default="ctf")
-def deploy(config_filename: str, environment: str):
+def deploy(config: str, environment: str):
     """
     Generate terraform configuration files
     from the ctf configuration and deploy required changes
     """
 
-    config = ConfigLoader(CtfConfig).convert(config_filename)
+    config = ConfigLoader(CtfConfig).convert(config)
 
     # Find the requested environment
     environment_e = next(
@@ -188,7 +188,7 @@ def destroy(config_filename: CtfConfig, environment: str):
     from the ctf configuration and deploy required changes
     """
 
-    config = ConfigLoader(CtfConfig).convert(config_filename)
+    config = ConfigLoader(CtfConfig).convert(config)
 
     # Find the requested environment
     environment_e = next(
