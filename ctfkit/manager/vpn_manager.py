@@ -10,6 +10,7 @@ class VPNManager:
 
     @staticmethod
     def generate_clients_private(teams: List[Team]):
+
         mkdir('vpn_configs')
         for team in teams:
             team_folder = join('vpn_configs', team.name)
@@ -55,8 +56,6 @@ class VPNManager:
 Address = 10.8.8.{index+2}/32
 PrivateKey = {b64encode(bytes(member.private_key)).decode()}
 DNS = 10.8.8.1
-
-# ==== Server configuration ====
 
 [Peer]
 PublicKey = {b64encode(bytes(team.private_key.public_key)).decode()}

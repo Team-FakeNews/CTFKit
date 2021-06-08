@@ -15,6 +15,7 @@ import yaml
 from yaml.loader import SafeLoader
 from click import Path, Parameter
 from click.core import Context
+from click.exceptions import BadArgumentUsage
 from marshmallow.schema import Schema
 from marshmallow_dataclass import class_schema
 
@@ -80,16 +81,16 @@ class ConfigLoader(Path, Generic[ClassType]):
             raw_config = self._try_load_file(filename, ext[1:])
 
         else: # Else try to append .yaml/.yml/.json to find the requested file
-            try:
-                raw_config = next(
-                    config for config in map(
-                        lambda extension: self._try_load_file(value, extension),
-                        self.EXTENSIONS
-                    ) if config is not None
-                )
-            except StopIteration as error:
-                raise ValueError('Unable to find any file'
-                                 f' matching {filename}.{ext if ext != "" else "/".join(self.EXTENSIONS)}') from error
+            raw_config = next(
+                config for config in map(
+                    lambda extension: self._try_load_file(value, extension),
+                    self.EXTENSIONS
+                ) if config is not None
+            )
+            
+        if raw_config is None:
+            raise BadArgumentUsage('Unable to find any file'
+                                f' matching {filename}{ext if ext != "" else "/".join(self.EXTENSIONS)}')
 
         # Generate the marshmallow schema using the dataclass typings
         config_schema: Schema = class_schema(self.base_cls)()

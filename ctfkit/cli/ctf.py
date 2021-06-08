@@ -164,10 +164,12 @@ def deploy(config: CtfConfig, environment: str):
 
     # Extract outputs from deployement
     outputs = app.get_outputs()
-    servers = outputs['servers']['value']
-    services_cidr = outputs['services_cidr']['value']
+    if 'servers' in outputs:
+        with yaspin(SPINNER_MODEL, text='Generating VPN configurations ...'):
+            servers = outputs['servers']['value']
+            services_cidr = outputs['services_cidr']['value']
 
-    VPNManager.generate_clients_config(config.teams, servers, services_cidr)
+            VPNManager.generate_clients_config(config.teams, servers, services_cidr)
 
 
 @cli.command('destroy')
@@ -175,7 +177,7 @@ def deploy(config: CtfConfig, environment: str):
                 type=click.Choice([ e.value for e in HostingEnvironment ]))
 @click.option("--config",
               type=ConfigLoader(CtfConfig),
-              default="ctf.yaml")
+              default="ctf")
 def destroy(config: CtfConfig, environment: str):
     """
     Generate terraform configuration files
