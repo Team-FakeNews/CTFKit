@@ -48,6 +48,7 @@ class VPNManager:
             teams: List[Team],
             servers_endpoints: Dict[str, str],
             services_cidr: str):
+        print(servers_endpoints) 
         for team in teams:
             for index, member in enumerate(team.members):
 
@@ -59,7 +60,7 @@ DNS = 10.8.8.1
 
 [Peer]
 PublicKey = {b64encode(bytes(team.private_key.public_key)).decode()}
-Endpoint = {servers_endpoints[team.name]}
+Endpoint = {servers_endpoints[team.slug]}
 AllowedIPs = 10.8.8.1/32, {services_cidr}
 PersistentKeepalive = 25
 """)

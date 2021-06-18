@@ -2,6 +2,7 @@ from os.path import join
 from pprint import pformat
 from typing import List, Optional
 from dataclasses import dataclass, field
+from click.core import Option
 
 from slugify import slugify
 from click.exceptions import BadParameter
@@ -70,6 +71,8 @@ class CtfConfig:
     name: str
     teams_file: Optional[str] = None
     teams: Optional[List[Team]] = field(init=False, default_factory=list)
+    docker_config_file: Optional[str] = None
+    docker_config: Optional[str] = None
     deployments: List[DeploymentConfig] = field(default_factory=list)
     challenges: List[str] = field(default_factory=list)
 
@@ -83,6 +86,10 @@ class CtfConfig:
 
         if self.teams_file is not None:
             self.teams = ConfigLoader(Team).convert(self.teams_file)
+
+        if self.docker_config_file is not None:
+            with open(self.docker_config_file, 'r') as _file:
+                self.docker_config = _file.read()
 
     def get_teams(self) -> List[Team]:
         """

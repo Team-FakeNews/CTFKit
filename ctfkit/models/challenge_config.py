@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Mapping, Optional
 from dataclasses import dataclass, field
 from pprint import pformat
 
@@ -16,13 +16,29 @@ class PortConfig:
         return pformat(vars(self))
 
 @dataclass
+class FileConfig:
+    local: str
+    container: str
+
+
+@dataclass
+class ResourceConfig:
+    min_memory: str
+    max_memory: str
+    min_cpu: str
+    max_cpu: str
+
+
+@dataclass
 class ContainerConfig:
     """
     Represent the configuration of a the container which host the challenge
     """
     image: str
+    resources: ResourceConfig
     ports: List[PortConfig] = field(default_factory=list)
-
+    env: Mapping[str, str] = field(default_factory=dict)
+    files: List[FileConfig] = field(default_factory=list)
 
 @dataclass(repr=False)
 class ChallengeConfig:
@@ -32,12 +48,12 @@ class ChallengeConfig:
     """
 
     name: str
-    description: str
-    points: int
-    category: str
-    author: str
+    # description: str
+    # points: int
+    # category: str
+    # author: str
     containers: List[ContainerConfig] = field(default_factory=list)
-    files: List[str] = field(default_factory=list)
+    # files: List[str] = field(default_factory=list)
 
     @property
     def slug(self) -> str:

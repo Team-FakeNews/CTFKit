@@ -9,6 +9,7 @@ from io import StringIO
 from dataclasses import is_dataclass
 from subprocess import PIPE, Popen
 from typing import Any, Callable, Generic, Optional, List, Tuple, Type, TypeVar
+from marshmallow.utils import EXCLUDE
 
 import validators  # type: ignore
 import yaml
@@ -81,19 +82,22 @@ class ConfigLoader(Path, Generic[ClassType]):
             raw_config = self._try_load_file(filename, ext[1:])
 
         else: # Else try to append .yaml/.yml/.json to find the requested file
-            raw_config = next(
-                config for config in map(
-                    lambda extension: self._try_load_file(value, extension),
-                    self.EXTENSIONS
-                ) if config is not None
-            )
+            try:
+                raw_config = next(
+                    config for config in map(
+                        lambda extension: self._try_load_file(value, extension),
+                        self.EXTENSIONS
+                    ) if config is not None
+                )
+            except StopIteration:
+                raw_config = None
             
         if raw_config is None:
             raise BadArgumentUsage('Unable to find any file'
-                                f' matching {filename}{ext if ext != "" else "/".join(self.EXTENSIONS)}')
+                                f' matching {filename}.{ext if ext != "" else "/".join(self.EXTENSIONS)}')
 
         # Generate the marshmallow schema using the dataclass typings
-        config_schema: Schema = class_schema(self.base_cls)()
+        config_schema: Schema = class_schema(self.base_cls)(unknown=EXCLUDE)
 
         # Cast the dict to a real CtfConfig instance
         if isinstance(raw_config, list):

@@ -1,38 +1,41 @@
 from base64 import b64encode
 from cdktf import Resource
-from cdktf_cdktf_provider_kubernetes import ConfigMap, ConfigMapMetadata, Deployment, DeploymentMetadata, DeploymentSpec, DeploymentSpecSelector, DeploymentSpecTemplate, DeploymentSpecTemplateMetadata, DeploymentSpecTemplateSpec, DeploymentSpecTemplateSpecContainer, DeploymentSpecTemplateSpecContainerEnv, DeploymentSpecTemplateSpecContainerPort, DeploymentSpecTemplateSpecContainerSecurityContext, DeploymentSpecTemplateSpecContainerSecurityContextCapabilities, DeploymentSpecTemplateSpecContainerVolumeMount, DeploymentSpecTemplateSpecInitContainer, DeploymentSpecTemplateSpecInitContainerSecurityContext, DeploymentSpecTemplateSpecInitContainerSecurityContextCapabilities, DeploymentSpecTemplateSpecVolume, DeploymentSpecTemplateSpecVolumeConfigMap, DeploymentSpecTemplateSpecVolumeHostPath, Service, ServiceMetadata, ServiceSpec, ServiceSpecPort
+from cdktf_cdktf_provider_kubernetes import ConfigMap, ConfigMapMetadata, Deployment, DeploymentMetadata, DeploymentSpec, DeploymentSpecSelector, DeploymentSpecTemplate, DeploymentSpecTemplateMetadata, DeploymentSpecTemplateSpec, DeploymentSpecTemplateSpecContainer, DeploymentSpecTemplateSpecContainerEnv, DeploymentSpecTemplateSpecContainerPort, DeploymentSpecTemplateSpecContainerResources, DeploymentSpecTemplateSpecContainerSecurityContext, DeploymentSpecTemplateSpecContainerSecurityContextCapabilities, DeploymentSpecTemplateSpecContainerVolumeMount, DeploymentSpecTemplateSpecInitContainer, DeploymentSpecTemplateSpecInitContainerSecurityContext, DeploymentSpecTemplateSpecInitContainerSecurityContextCapabilities, DeploymentSpecTemplateSpecVolume, DeploymentSpecTemplateSpecVolumeConfigMap, DeploymentSpecTemplateSpecVolumeHostPath, Service, ServiceMetadata, ServiceSpec, ServiceSpecPort
 from constructs import Construct
 from ctfkit.models import Team
+from hashlib import md5
 
 class K8sVpnWireguard(Resource):
 
     config: str
 
-    def __init__(self, scope: Construct, name: str, namespace: str, team: Team, domain: str) -> None:
+    def __init__(
+            self,
+            scope: Construct,
+            name: str,
+            namespace: str,
+            team: Team,
+            domain: str,
+            vpn_external_ip: str,
+            port_index: int) -> None:
         super().__init__(scope, name)
 
         escaped_domain = domain.replace('.', '\\.')
+
+        external_port = 51820 + port_index
 
         clients_config = '\n'.join([ f"""[Peer]
 PublicKey = {b64encode(bytes(client.private_key.public_key)).decode()}
 AllowedIPs = 10.8.8.{index+2}
 """ for index, client in enumerate(team.members)])
 
-        wg_config = ConfigMap(
-            self,
-            'wg_config',
-            metadata=[ConfigMapMetadata(
-                name='wg-config',
-                namespace=namespace
-            )],
-            data={
-                'wg0.conf': f"""[Interface]
+        server_config = f"""[Interface]
 # Adresse IP du serveur à l'intérieur du VPN
 Address = 10.8.8.1/16
 # Clef privée du serveur
 PrivateKey = {b64encode(bytes(team.private_key)).decode()}
 # Port sur lequel le serveur écoute
-ListenPort = 51820
+ListenPort = {external_port}
 
 
 # On exécute les commandes d'ajout des règles lorsque le VPN démarre
@@ -42,6 +45,16 @@ PostDown = iptables -D FORWARD -i %i -j ACCEPT ; iptables -D FORWARD -o %i -j AC
 
 {clients_config}
 """
+
+        wg_config = ConfigMap(
+            self,
+            'wg_config',
+            metadata=[ConfigMapMetadata(
+                name='wg-config',
+                namespace=namespace
+            )],
+            data={
+                'wg0.conf': server_config
             }
         )
 
@@ -76,6 +89,9 @@ PostDown = iptables -D FORWARD -i %i -j ACCEPT ; iptables -D FORWARD -o %i -j AC
                 namespace=namespace,
                 labels={
                     'app': 'wireguard'
+                },
+                annotations={
+                    'config_change': md5(server_config.encode()).hexdigest()
                 }
             )],
 
@@ -113,7 +129,12 @@ PostDown = iptables -D FORWARD -i %i -j ACCEPT ; iptables -D FORWARD -o %i -j AC
                             DeploymentSpecTemplateSpecContainer(
                                 image='masipcat/wireguard-go:latest',
                                 name='wireguard',
-
+                                
+                                resources=[DeploymentSpecTemplateSpecContainerResources(
+                                    requests={
+                                        'memory': '20M'
+                                    }
+                                )],
                                 port=[DeploymentSpecTemplateSpecContainerPort(
                                     container_port=51820,
                                     protocol='UDP',
@@ -186,11 +207,13 @@ PostDown = iptables -D FORWARD -i %i -j ACCEPT ; iptables -D FORWARD -o %i -j AC
                 name='wireguard-front',
                 namespace=namespace
             )],
+            wait_for_load_balancer=False,
             spec=[ServiceSpec(
                 type='LoadBalancer',
                 session_affinity='ClientIP',
+                load_balancer_ip=vpn_external_ip,
                 port=[ServiceSpecPort(
-                    port=51820,
+                    port=external_port,
                     protocol='UDP'
                 )],
                 selector={
@@ -199,4 +222,4 @@ PostDown = iptables -D FORWARD -i %i -j ACCEPT ; iptables -D FORWARD -o %i -j AC
             )]
         )
 
-        self.endpoint_var = service.status('0').load_balancer[:-1] + '.0.ingress.0.ip}:51820'
+        self.endpoint_var = service.status('0').load_balancer[:-1] + '.0.ingress.0.ip}:' + str(external_port)

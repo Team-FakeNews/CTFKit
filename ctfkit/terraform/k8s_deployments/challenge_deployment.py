@@ -1,6 +1,8 @@
+from typing import List, Mapping, Optional
 from cdktf import Resource
-from cdktf_cdktf_provider_kubernetes import Deployment, DeploymentMetadata, DeploymentSpec, DeploymentSpecSelector, DeploymentSpecTemplate, DeploymentSpecTemplateMetadata, DeploymentSpecTemplateSpec, DeploymentSpecTemplateSpecContainer, DeploymentSpecTemplateSpecContainerPort, Service, ServiceMetadata, ServiceSpec, ServiceSpecPort
+from cdktf_cdktf_provider_kubernetes import ConfigMap, ConfigMapMetadata, Deployment, DeploymentMetadata, DeploymentSpec, DeploymentSpecSelector, DeploymentSpecTemplate, DeploymentSpecTemplateMetadata, DeploymentSpecTemplateSpec, DeploymentSpecTemplateSpecContainer, DeploymentSpecTemplateSpecContainerEnv, DeploymentSpecTemplateSpecContainerPort, DeploymentSpecTemplateSpecContainerResources, DeploymentSpecTemplateSpecContainerVolumeMount, DeploymentSpecTemplateSpecImagePullSecrets, DeploymentSpecTemplateSpecVolume, DeploymentSpecTemplateSpecVolumeConfigMap, DeploymentSpecTemplateSpecVolumeConfigMapItems, Service, ServiceMetadata, ServiceSpec, ServiceSpecPort
 from constructs import Construct
+from slugify.slugify import slugify
 
 from ctfkit.models import ChallengeConfig
 
@@ -15,12 +17,32 @@ class K8sChallengeDeployment(Resource):
             self,
             scope: Construct,
             challenge_config: ChallengeConfig,
-            namespace: str) -> None:
+            namespace: str,
+            image_pull_secret: Optional[str] = None) -> None:
         super().__init__(scope, challenge_config.slug)
+
+        pull_secrets = [DeploymentSpecTemplateSpecImagePullSecrets(name=image_pull_secret)] if image_pull_secret is not None else []
+
+        configs_map: List[Mapping[str, ConfigMap]] = []
+        for index, container in enumerate(challenge_config.containers):
+            configs_map.append({})
+            for file in container.files:
+                with open(file.local, 'r') as _file:
+                    configs_map[index][file.local] = ConfigMap(
+                        self,
+                        'file-' + slugify(file.local),
+                        metadata=[ConfigMapMetadata(
+                            name='file-' + slugify(file.local),
+                            namespace=namespace
+                        )],
+                        data={
+                            'content': _file.read()
+                        }
+                    )
 
         Deployment(
             self,
-            f'challenge-{challenge_config.slug}',
+            'deployment',
             metadata=[DeploymentMetadata(
                 name=f'challenge-{challenge_config.slug}',
                 namespace=namespace,
@@ -43,8 +65,9 @@ class K8sChallengeDeployment(Resource):
                         }
                     )],
                     spec=[DeploymentSpecTemplateSpec(
+                        image_pull_secrets=pull_secrets,
                         container=[DeploymentSpecTemplateSpecContainer(
-                            name=challenge_config.slug,
+                            name=f'{challenge_config.slug}-{container_index}',
                             image_pull_policy='Always',
                             image=container_config.image,
                             port=[
@@ -53,16 +76,44 @@ class K8sChallengeDeployment(Resource):
                                     protocol=port_config.proto
                                 )
                                 for port_config in container_config.ports
-                            ]
-                        ) for container_config in challenge_config.containers]
-                    )]
+                            ],
+                            resources=[DeploymentSpecTemplateSpecContainerResources(
+                                requests={
+                                    'memory': container_config.resources.min_memory,
+                                    'cpu': container_config.resources.min_cpu
+                                },
+                                limits={
+                                    'memory': container_config.resources.max_memory,
+                                    'cpu': container_config.resources.max_cpu
+                                }
+                            )],
+                            
+                            env=[DeploymentSpecTemplateSpecContainerEnv(
+                                name=env_name,
+                                value=env_value
+                            ) for env_name, env_value in container_config.env.items()],
+
+                            volume_mount=[DeploymentSpecTemplateSpecContainerVolumeMount(
+                                name=configs_map[container_index][file.local].id[:-3] + 'metadata.0.name}',
+                                mount_path=file.container,
+                                sub_path='content'
+                            ) for file in container_config.files]
+                            # ) for key, cfg_map in configs_map[container_index].items()]
+                        ) for container_index, container_config in enumerate(challenge_config.containers)],
+                        volume=[DeploymentSpecTemplateSpecVolume(
+                            name=cfg_map.id[:-3] + 'metadata.0.name}',
+                            config_map=[DeploymentSpecTemplateSpecVolumeConfigMap(
+                                name=cfg_map.id[:-3] + 'metadata.0.name}'
+                            )]
+                        ) for sublist in configs_map for key, cfg_map in sublist.items()]
+                    )],
                 )]
             )]
         )
 
         Service(
             self,
-            'challenge',
+            'service',
             metadata=[ServiceMetadata(
                 name=challenge_config.slug,
                 namespace=namespace

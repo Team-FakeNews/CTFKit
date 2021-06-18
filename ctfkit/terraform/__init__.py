@@ -1,6 +1,7 @@
-from ctfkit.terraform.k8s_deployments.vpn_wireguard import K8sVpnWireguard
+
 import sys
 import json
+from base64 import b64encode
 from os.path import join
 from subprocess import PIPE, Popen
 from typing import Callable, Dict, IO, Any, List, Mapping, Tuple
@@ -8,10 +9,12 @@ from constructs import Construct
 
 # Terraform CDK and precompiled providers
 from cdktf import App, TerraformOutput, TerraformStack
-from cdktf_cdktf_provider_google import GoogleProvider
-from cdktf_cdktf_provider_kubernetes import KubernetesProvider, Namespace, NamespaceMetadata
+from cdktf_cdktf_provider_google import ComputeAddress, GoogleProvider
+from cdktf_cdktf_provider_kubernetes import KubernetesProvider, Namespace, NamespaceMetadata, Secret, SecretMetadata
 from cdktf_cdktf_provider_azurerm import AzurermProvider, AzurermProviderFeatures
+from ctfkit.models import ctf_config
 
+from ctfkit.terraform.k8s_deployments.vpn_wireguard import K8sVpnWireguard
 from ctfkit.utility import proc_exec
 from ctfkit.models.hosting_provider import HostingProvider
 from ctfkit.models.ctf_config import CtfConfig, DeploymentConfig
@@ -68,7 +71,7 @@ class CtfDeployment(App):
         """
         Wrap the execution of the terraform apply command
         """
-        command = ['terraform', 'apply', '-auto-approve']
+        command = ['terraform', 'apply', '-auto-approve', '-parallelism=100']
         return proc_exec(
             command,
             cwd=join(self.outdir, 'stacks', 'ctf'),
@@ -111,6 +114,11 @@ class CtfStack(TerraformStack):
 
         if self.deployment_config.provider == HostingProvider.GCP:
             cluster = self._declare_gcp_cluster()
+            ip_reservation = ComputeAddress(
+                self,
+                'vpn_ip',
+                name='ctf-vpn-ip',
+            )
 
         elif self.deployment_config.provider == HostingProvider.AZURE:
             cluster = self._declare_azure_cluster()
@@ -128,30 +136,57 @@ class CtfStack(TerraformStack):
         )
 
         if self.config.teams is not None:
-            for team in self.config.teams:
+            for index, team in enumerate(self.config.teams):
                 ns = Namespace(
                     self,
-                    f'team_ns_{team.slug}',
+                    f'{team.slug}',
                     metadata=[NamespaceMetadata(
                         name=f'team-{team.slug}'
                     )]
                 )
 
-                self.servers[team.name] = K8sVpnWireguard(
+                pull_secret = None
+                if config.docker_config is not None:
+                    pull_secret = Secret(
+                        ns,
+                        'registry_auth',
+                        metadata=[SecretMetadata(
+                            name='docker-cfg',
+                            namespace=ns.metadata_input[0].name
+                        )],
+                        data=({
+                            ".dockerconfigjson": config.docker_config
+                        }),
+                        type="kubernetes.io/dockerconfigjson"
+                    )
+
+                self.servers[team.slug] = K8sVpnWireguard(
                     ns,
                     'wireguard',
-                    ns.metadata_input[0].name,
+                    ns.id[:-3] + 'metadata.0.name}',
                     team,
-                    self.deployment_config.internal_domain
+                    self.deployment_config.internal_domain,
+                    ip_reservation.address,
+                    index
                 ).endpoint_var
 
-                K8sChallengeListDeployments(ns, 'team_challenges', self.config.challenges_config, ns.metadata_input[0].name)
+                deployments = K8sChallengeListDeployments(
+                    ns,
+                    'challenges',
+                    self.config.challenges_config,
+                    ns.id[:-3] + 'metadata.0.name}',
+                    image_pull_secret=pull_secret.id[:-3] + 'metadata.0.name}'
+                )
+                
 
-        TerraformOutput(
+        servers_output = TerraformOutput(
             self,
             'servers',
-            value=self.servers
-        ).override_logical_id('servers')
+            value={}
+        )
+        servers_output.add_override('value', self.servers)
+        
+        servers_output.override_logical_id('servers')
 
         TerraformOutput(
             self,

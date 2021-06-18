@@ -17,8 +17,14 @@ class K8sChallengeListDeployments(Resource):
             scope: Construct,
             name: str,
             challenges: List[ChallengeConfig],
-            namespace: Optional[str] = 'default') -> None:
+            namespace: Optional[str] = 'default',
+            image_pull_secret: Optional[str] = None) -> None:
         super().__init__(scope, name)
 
         for challenge_config in challenges:
-            K8sChallengeDeployment(self, challenge_config, namespace)
+            K8sChallengeDeployment(
+                self,
+                challenge_config,
+                namespace,
+                image_pull_secret=image_pull_secret
+            )

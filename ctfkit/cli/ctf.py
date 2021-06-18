@@ -119,16 +119,16 @@ def plan(config: str, environment: str):
     Generate terraform configuration and list planned addition, deletion and modification
     """
 
-    config = ConfigLoader(CtfConfig).convert(config)
+    ctf_config = ConfigLoader(CtfConfig).convert(config)
 
     environment_e = next(
         elem for elem in HostingEnvironment if elem.value == environment)
 
     # Prepare clients private keys
-    VPNManager.generate_clients_private(config.teams)
+    VPNManager.generate_clients_private(ctf_config.teams)
 
     # Declare our terraform stack
-    app = create_deployment(config, environment_e)
+    app = create_deployment(ctf_config, environment_e)
 
     helpers = TfHelpers(app)
 
@@ -182,7 +182,7 @@ def deploy(config: str, environment: str):
 @click.option("--config",
               type=str,
               default="ctf")
-def destroy(config_filename: CtfConfig, environment: str):
+def destroy(config: CtfConfig, environment: str):
     """
     Generate terraform configuration files
     from the ctf configuration and deploy required changes
