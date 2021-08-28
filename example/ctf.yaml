@@ -2,7 +2,7 @@ kind: ctf
 name: fakectf
 challenges:
     - ./challs/01-demo
-teams_file: ./staff.json
+teams_file: ./teams.json
 deployments:
     -   environment: testing
         provider: gcp

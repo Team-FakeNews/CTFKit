@@ -12,6 +12,3 @@ containers:
         port: 80
       - proto: UDP
         port: 31337
-# Not implemented yet:
-# vm:
-#     idk mate but it's for virtual machines
