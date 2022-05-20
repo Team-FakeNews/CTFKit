@@ -44,7 +44,7 @@ class ContainerConfig:
 class ChallengeConfig:
     """
     Will be used to convert a YAML config file to an object we can
-    manipulate using the `Challenge` class using `utility.ConfigLoader`
+    manipulate using the :class:`Challenge` class using :class:`utility.ConfigLoader`
     """
 
     name: str
